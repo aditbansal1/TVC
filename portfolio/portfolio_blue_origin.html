@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Adit Bansal — Portfolio Sample</title>
+<style>
+  @page { size: Letter; margin: 0; }
+  :root {
+    --ink: #14181f; --muted: #555d6b; --line: #d5d9e0; --soft: #f3f5f8;
+    --accent: #1f4e8c; --accent-soft: #e6eef8; --warn: #a3471b; --ok: #2f6b3a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #fff; color: var(--ink);
+    font-family: "Inter", "DejaVu Sans", sans-serif; font-size: 9.1pt; line-height: 1.38; }
+  .page { width: 8.5in; height: 11in; padding: 0.5in 0.6in 0.45in; position: relative; overflow: hidden;
+    page-break-after: always; break-after: page; }
+  .page:last-child { page-break-after: auto; break-after: auto; }
+  .foot { position: absolute; bottom: 0.25in; left: 0.6in; right: 0.6in; display: flex; justify-content: space-between;
+    font-size: 7.4pt; color: var(--muted); border-top: 1px solid var(--line); padding-top: 4px; }
+  h1 { font-family: "Inter Display", "Inter", sans-serif; font-size: 19pt; line-height: 1.12; margin: 0 0 2px; letter-spacing: -0.01em; }
+  h2 { font-family: "Inter Display", "Inter", sans-serif; font-size: 12.5pt; margin: 0 0 6px; color: var(--accent);
+    letter-spacing: -0.005em; }
+  h2 .num { color: var(--muted); font-weight: 500; margin-right: 6px; }
+  h3 { font-size: 9.6pt; margin: 9px 0 3px; }
+  p { margin: 0 0 6px; }
+  ul { margin: 2px 0 6px; padding-left: 15px; }
+  li { margin: 0 0 2.5px; }
+  .mono { font-family: "JetBrains Mono", "DejaVu Sans Mono", monospace; font-size: 8.2pt; }
+  .muted { color: var(--muted); }
+  .kicker { font-size: 8pt; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); font-weight: 600; }
+  .header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid var(--ink);
+    padding-bottom: 7px; margin-bottom: 10px; }
+  .header .who { white-space: nowrap; text-align: right; font-size: 8.3pt; color: var(--muted); line-height: 1.45; }
+  .header .who b { color: var(--ink); font-size: 10.5pt; }
+  .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 8px 0 10px; }
+  .stat { background: var(--soft); border-radius: 4px; padding: 6px 8px; }
+  .stat .v { font-family: "Inter Display", "Inter", sans-serif; font-size: 14pt; font-weight: 700; color: var(--accent); line-height: 1.1; }
+  .stat .l { font-size: 7.4pt; color: var(--muted); line-height: 1.25; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .cols-60 { display: grid; grid-template-columns: 1.25fr 1fr; gap: 14px; }
+  .box { border: 1px solid var(--line); border-radius: 5px; padding: 7px 9px; }
+  .box.accent { background: var(--accent-soft); border-color: #c4d4ea; }
+  .box h3 { margin-top: 0; }
+  figure { margin: 4px 0 8px; }
+  figcaption { font-size: 7.6pt; color: var(--muted); margin-top: 2px; }
+  svg text { font-family: "Inter", "DejaVu Sans", sans-serif; }
+  table { border-collapse: collapse; width: 100%; font-size: 8.1pt; }
+  th, td { text-align: left; padding: 3px 5px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--soft); font-weight: 600; font-size: 7.8pt; }
+  .eq { font-family: "JetBrains Mono", monospace; font-size: 8.4pt; background: var(--soft); padding: 4px 7px;
+    border-radius: 3px; margin: 3px 0 6px; display: block; }
+  .fill { background: #fff3b0; padding: 0 2px; border-radius: 2px; }
+  .star { display: grid; grid-template-columns: 62px 1fr; gap: 1px 6px; font-size: 8.4pt; }
+  .star b { color: var(--accent); }
+  .tag { display: inline-block; font-size: 7pt; font-weight: 600; padding: 0 5px; border-radius: 8px; }
+  .tag.me { background: var(--accent); color: #fff; }
+  .tag.team { background: #e2e5ea; color: #39404c; }
+  .reqs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .req { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 4px; padding: 5px 7px; font-size: 8.2pt; line-height: 1.3; }
+  .req b { display: block; color: var(--accent); font-size: 9.5pt; }
+  .rid { font-weight: 700; color: var(--accent); white-space: nowrap; }
+  .p3 { font-size: 10.4pt; line-height: 1.45; }
+  .p3 h3 { font-size: 11pt; margin: 14px 0 6px; }
+  .p3 table { font-size: 9.6pt; } .p3 th { font-size: 9.2pt; } .p3 th, .p3 td { padding: 5px 6px; }
+  .p3 .eq { font-size: 9.6pt; padding: 6px 8px; }
+  .eq.math { font-family: "Bitstream Charter", "DejaVu Serif", serif; font-size: 12pt; text-align: center; padding: 7px 8px; letter-spacing: 0; }
+  .eq.math i { font-style: italic; }
+  .eq.math sub, .eq.math sup { font-size: 70%; line-height: 0; }
+  .eq.math sup { vertical-align: 0.5em; } .eq.math sub { vertical-align: -0.25em; }
+  .eq.math sub + sup { margin-left: -0.55em; } .p3 figcaption { font-size: 8.6pt; }
+  .p3 .cols { gap: 22px; margin-top: 10px; } .p3 li { margin-bottom: 4px; }
+  .p3 .cols svg { margin: 6px 0 10px; }
+  .p3 { font-size: 11pt; } .p3 h2 { margin-bottom: 18px; } .p3 figure { margin: 0 0 26px; }
+  .p3 .cols { margin-top: 0; } .p3 .cols > div { display: flex; flex-direction: column; }
+  .p3 h3 { margin-top: 20px; }
+  .layers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .layer { background: var(--accent-soft); border: 1px solid #c4d4ea; border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
+  .layer .n { width: 22px; height: 22px; border-radius: 11px; background: var(--accent); color: #fff; font-weight: 700; font-size: 10pt;
+    display: flex; align-items: center; justify-content: center; }
+  .layer span { font-size: 9.8pt; color: #39404c; } .p3 .cols h3:first-child { margin-top: 0; }
+</style>
+</head>
+<body>
+
+<!-- ============================== PAGE 1 ============================== -->
+<section class="page">
+  <div class="header">
+    <div>
+      <div class="kicker">Portfolio Sample · Electrical Systems Eng. Intern · Summer 2027</div>
+      <h1>Ranger TVC: CAN-FD Gimbal Actuation<br>for a VTVL Rocket Vehicle</h1>
+    </div>
+    <div class="who"><b>Adit Bansal</b><br>B.S. Electrical &amp; Computer Eng., USC '28<br>
+      GNC Team · USC Liquid Propulsion Lab<br>aditbans@usc.edu</div>
+  </div>
+
+  <p><b>Ranger</b> is USC Liquid Propulsion Lab's vertical-takeoff, vertical-landing (VTVL) liquid-rocket vehicle. To steer,
+  the engine sits on a two-axis gimbal pushed by two electric linear actuators (pitch and yaw). I own the
+  <b>thrust vector control (TVC) system</b> from the flight computer to the actuator: the CAN-FD bus to the motor controllers,
+  the real-time 50 Hz control thread, the gimbal kinematics, and the safety supervisor that decides when the actuators are
+  allowed to move.</p>
+
+  <div class="stats">
+    <div class="stat"><div class="v">50 Hz</div><div class="l">deterministic loop, kernel-timer paced (no drift)</div></div>
+    <div class="stat"><div class="v">&lt; 5 ms</div><div class="l">command-to-reply latency budget per cycle</div></div>
+    <div class="stat"><div class="v">±12°</div><div class="l">two-axis gimbal, ~2.4 in actuator stroke</div></div>
+    <div class="stat"><div class="v">5 faults</div><div class="l">detected and latched into a safe state</div></div>
+    <div class="stat"><div class="v">55</div><div class="l">host unit tests incl. MATLAB-generated vectors</div></div>
+  </div>
+
+  <h2><span class="num">01</span>System architecture</h2>
+  <figure>
+    <svg viewBox="0 0 730 250" width="100%" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#14181f"/></marker>
+      </defs>
+      <!-- Ground station -->
+      <rect x="4" y="80" width="98" height="62" rx="5" fill="#f3f5f8" stroke="#9aa3b0"/>
+      <text x="53" y="102" text-anchor="middle" font-size="10.5" font-weight="700">Ground station</text>
+      <text x="53" y="117" text-anchor="middle" font-size="8.5" fill="#555d6b">Python client</text>
+      <text x="53" y="130" text-anchor="middle" font-size="8.5" fill="#555d6b">live TVC dashboard</text>
+      <line x1="102" y1="111" x2="138" y2="111" stroke="#14181f" stroke-width="1.4" marker-end="url(#a)" marker-start="url(#a)"/>
+      <text x="120" y="104" text-anchor="middle" font-size="7.5" fill="#555d6b">Ethernet</text>
+      <text x="120" y="124" text-anchor="middle" font-size="7.5" fill="#555d6b">protobuf</text>
+
+      <!-- Flight computer -->
+      <rect x="140" y="14" width="250" height="222" rx="6" fill="#e6eef8" stroke="#1f4e8c" stroke-width="1.4"/>
+      <text x="265" y="32" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1f4e8c">Flight computer: Teensy 4.1</text>
+      <text x="265" y="45" text-anchor="middle" font-size="8.3" fill="#555d6b">NXP i.MX RT1062 (Cortex-M7) · Zephyr RTOS · C++23</text>
+      <rect x="152" y="56" width="226" height="38" rx="4" fill="#fff" stroke="#9aa3b0"/>
+      <text x="265" y="72" text-anchor="middle" font-size="9" font-weight="600">Controller work queue (prio −10)</text>
+      <text x="265" y="85" text-anchor="middle" font-size="8" fill="#555d6b">state machine · traces · GNC · 1.5 ms tick</text>
+      <rect x="230" y="101" width="70" height="20" rx="3" fill="#fff" stroke="#9aa3b0" stroke-dasharray="3 2"/>
+      <text x="265" y="115" text-anchor="middle" font-size="7.8">mutex hand-off</text>
+      <rect x="152" y="128" width="226" height="56" rx="4" fill="#fff" stroke="#1f4e8c" stroke-width="1.6"/>
+      <text x="265" y="143" text-anchor="middle" font-size="9" font-weight="700" fill="#1f4e8c">TVC thread (prio −7) · 50 Hz  ★</text>
+      <text x="265" y="156" text-anchor="middle" font-size="8" fill="#14181f">Supervisor → kinematics → moteus protocol</text>
+      <text x="265" y="168" text-anchor="middle" font-size="8" fill="#555d6b">sole owner of the CAN bus · timing stats</text>
+      <text x="265" y="179" text-anchor="middle" font-size="8" fill="#555d6b">above sensor threads (−5)</text>
+      <rect x="196" y="194" width="138" height="32" rx="4" fill="#fff" stroke="#1f4e8c" stroke-width="1.6"/>
+      <text x="265" y="208" text-anchor="middle" font-size="8.8" font-weight="700" fill="#1f4e8c">FlexCAN3 + driver  ★</text>
+      <text x="265" y="220" text-anchor="middle" font-size="7.8" fill="#555d6b">CAN-FD · per-node RX filters</text>
+      <line x1="265" y1="94" x2="265" y2="101" stroke="#14181f" stroke-width="1.2"/>
+      <line x1="265" y1="121" x2="265" y2="128" stroke="#14181f" stroke-width="1.2"/>
+      <line x1="265" y1="184" x2="265" y2="194" stroke="#14181f" stroke-width="1.2"/>
+
+      <!-- Transceiver -->
+      <line x1="334" y1="210" x2="414" y2="210" stroke="#14181f" stroke-width="1.3" marker-end="url(#a)"/>
+      <text x="372" y="204" text-anchor="middle" font-size="7.4" fill="#555d6b">TXD/RXD 3.3 V</text>
+      <rect x="416" y="190" width="78" height="40" rx="4" fill="#fff" stroke="#14181f"/>
+      <text x="455" y="207" text-anchor="middle" font-size="8.8" font-weight="700">CAN-FD</text>
+      <text x="455" y="220" text-anchor="middle" font-size="8.8" font-weight="700">transceiver</text>
+
+      <!-- Bus -->
+      <line x1="494" y1="203" x2="716" y2="203" stroke="#a3471b" stroke-width="2"/>
+      <line x1="494" y1="217" x2="716" y2="217" stroke="#1f4e8c" stroke-width="2"/>
+      <text x="520" y="198" font-size="7.6" fill="#a3471b">CAN_H</text>
+      <text x="520" y="229" font-size="7.6" fill="#1f4e8c">CAN_L</text>
+      <text x="600" y="243" text-anchor="middle" font-size="7.6" fill="#555d6b">twisted pair + GND · 1 Mbps arb / 5 Mbps data</text>
+      <rect x="704" y="200" width="12" height="20" fill="#fff" stroke="#14181f"/>
+      <text x="710" y="236" text-anchor="middle" font-size="7.2">120 Ω</text>
+
+      <!-- moteus nodes -->
+      <g>
+        <rect x="532" y="104" width="76" height="46" rx="4" fill="#f3f5f8" stroke="#14181f"/>
+        <text x="570" y="121" text-anchor="middle" font-size="8.8" font-weight="700">moteus r4.1</text>
+        <text x="570" y="134" text-anchor="middle" font-size="8">pitch · ID 1</text>
+        <text x="570" y="145" text-anchor="middle" font-size="7.4" fill="#555d6b">FOC @ 30+ kHz</text>
+        <line x1="560" y1="150" x2="560" y2="203" stroke="#a3471b" stroke-width="1.4"/>
+        <line x1="580" y1="150" x2="580" y2="217" stroke="#1f4e8c" stroke-width="1.4"/>
+      </g>
+      <g>
+        <rect x="626" y="104" width="76" height="46" rx="4" fill="#f3f5f8" stroke="#14181f"/>
+        <text x="664" y="121" text-anchor="middle" font-size="8.8" font-weight="700">moteus r4.1</text>
+        <text x="664" y="134" text-anchor="middle" font-size="8">yaw · ID 2</text>
+        <text x="664" y="145" text-anchor="middle" font-size="7.4" fill="#555d6b">FOC @ 30+ kHz</text>
+        <line x1="654" y1="150" x2="654" y2="203" stroke="#a3471b" stroke-width="1.4"/>
+        <line x1="674" y1="150" x2="674" y2="217" stroke="#1f4e8c" stroke-width="1.4"/>
+      </g>
+      <rect x="499" y="200" width="12" height="20" fill="#fff" stroke="#14181f"/>
+      <text x="505" y="188" text-anchor="middle" font-size="7.2">120 Ω</text>
+
+      <!-- Actuators / gimbal -->
+      <rect x="532" y="22" width="170" height="64" rx="4" fill="#fff" stroke="#14181f"/>
+      <text x="617" y="39" text-anchor="middle" font-size="9" font-weight="700">BLDC → 4 mm lead screw</text>
+      <text x="617" y="52" text-anchor="middle" font-size="8" fill="#555d6b">linear actuators (pitch, yaw)</text>
+      <text x="617" y="66" text-anchor="middle" font-size="8.5" font-weight="600">→ engine gimbal, ±12°</text>
+      <text x="617" y="79" text-anchor="middle" font-size="7.6" fill="#555d6b">6.35 output rev per inch of travel</text>
+      <line x1="570" y1="104" x2="570" y2="86" stroke="#14181f" stroke-width="1.2" marker-end="url(#a)"/>
+      <line x1="664" y1="104" x2="664" y2="86" stroke="#14181f" stroke-width="1.2" marker-end="url(#a)"/>
+    </svg>
+    <figcaption>Fig. 1. TVC signal path. ★ = blocks I designed and implemented. moteus closes the motor current and position loops
+      internally; my firmware sends a position setpoint plus limits, and queries the measured state, every 20 ms.</figcaption>
+  </figure>
+
+  <div class="cols">
+    <div class="box accent">
+      <h3>My role and contributions <span class="tag me">mine</span></h3>
+      <ul>
+        <li>Brought up <b>CAN-FD on FlexCAN3</b>: devicetree overlay, bit timing, Kconfig, pin mapping to the transceiver</li>
+        <li>Wrote an <b>allocation-free moteus protocol</b> encoder/decoder and a non-blocking CAN transport</li>
+        <li>Built the <b>50 Hz TVC thread</b> with timing telemetry; resolved thread-timing races</li>
+        <li>Implemented <b>closed-form inverse kinematics</b> (law of cosines) from the mechanical team's gimbal model</li>
+        <li>Designed the <b>safety supervisor</b>: homing, enable interlocks, clamps, slew limits, fault latching</li>
+        <li>Debugged the <b>CAN physical layer</b> with an oscilloscope and SocketCAN</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>Team context <span class="tag team">team</span></h3>
+      <p>The GNC team owns guidance and control software for Ranger. Teammates built the flight-computer controller framework,
+        the sensor drivers, the first moteus bench test (which set the controller IDs and defaults), and the gimbal mechanism and
+        its MATLAB kinematic model, which I translated into firmware.</p>
+      <h3>Tools</h3>
+      <p class="muted" style="margin:0">Zephyr RTOS · C++23 · devicetree/Kconfig · CAN-FD / SocketCAN · moteus r4.1 · oscilloscope ·
+        MATLAB · Python · protobuf (nanopb) · ztest on native_sim · Git</p>
+    </div>
+  </div>
+  <h3 style="margin-top:12px">Requirements I designed to <span class="muted" style="font-weight:400">(verification on p. 4)</span></h3>
+  <div class="reqs">
+    <div class="req"><b>R1</b><span>Point the engine ±12° in pitch and yaw, matching the mechanical model</span></div>
+    <div class="req"><b>R2</b><span>Update every 20 ms, with replies back in under 5 ms</span></div>
+    <div class="req"><b>R3</b><span>Never move an actuator that is unhomed or unhealthy</span></div>
+    <div class="req"><b>R4</b><span>Fail safe on lost communication or a controller fault</span></div>
+    <div class="req"><b>R5</b><span>Reject bad commands: NaN, out-of-range, sudden steps</span></div>
+  </div>
+  <div class="foot"><span>Adit Bansal · Portfolio Sample</span><span>USC Liquid Propulsion Lab · Ranger TVC</span><span>1 / 4</span></div>
+</section>
+
+<!-- ============================== PAGE 2 ============================== -->
+<section class="page">
+  <h2><span class="num">02</span>Electrical interface: the CAN-FD bus</h2>
+  <p><b>Why CAN-FD.</b> Each actuator needs a 43-byte command-and-query frame every cycle: six frames on classic CAN (8 bytes each),
+    one on CAN-FD (up to 64 bytes, with a faster data phase). As a differential bus, it also rejects the electrical noise around a firing
+    engine far better than the single-ended PWM servo links on our Hornet test vehicle.</p>
+
+  <div class="cols-60">
+    <div>
+      <h3>Physical-layer design decisions</h3>
+      <table>
+        <tr><th style="width:34%">Decision</th><th>Reason</th></tr>
+        <tr><td>Transceiver with 3.3 V logic I/O</td><td>Teensy 4.x pins are <b>not 5 V tolerant</b>; a 5 V-logic transceiver would damage the MCU</td></tr>
+        <tr><td>120 Ω at <b>both</b> bus ends</td><td>moteus boards have no on-board termination. The bus impedance is ~120 Ω, so an unterminated end reflects edges and corrupts bits</td></tr>
+        <tr><td>Twisted CAN_H/CAN_L + shared GND</td><td>Noise couples equally into both wires and cancels in the differential receiver; GND keeps both nodes inside the common-mode range</td></tr>
+        <tr><td>Standby pin tied for normal mode</td><td>A floating standby/silent pin leaves the transceiver unable to drive the bus or ACK</td></tr>
+        <tr><td>1 Mbps arbitration / 5 Mbps data, BRS off at first</td><td>Bench-validated at 1 Mbps first; switch to 5 Mbps data only after checking signal quality on the real vehicle harness</td></tr>
+      </table>
+    </div>
+    <div>
+      <h3>Bus timing budget (one 20 ms cycle)</h3>
+      <svg viewBox="0 0 330 150" width="100%" xmlns="http://www.w3.org/2000/svg">
+        <rect x="10" y="22" width="310" height="34" fill="#f3f5f8" stroke="#9aa3b0"/>
+        <rect x="10" y="22" width="7.75" height="34" fill="#1f4e8c"/>
+        <rect x="18.5" y="22" width="7.75" height="34" fill="#1f4e8c" opacity="0.7"/>
+        <rect x="27" y="22" width="7.75" height="34" fill="#a3471b"/>
+        <rect x="35.5" y="22" width="7.75" height="34" fill="#a3471b" opacity="0.7"/>
+        <line x1="10" y1="64" x2="87.5" y2="64" stroke="#14181f"/>
+        <line x1="10" y1="60" x2="10" y2="68" stroke="#14181f"/><line x1="87.5" y1="60" x2="87.5" y2="68" stroke="#14181f"/>
+        <text x="49" y="78" text-anchor="middle" font-size="8.4">5 ms reply window</text>
+        <text x="200" y="43" text-anchor="middle" font-size="8.6" fill="#555d6b">bus idle (~90%)</text>
+        <text x="10" y="15" font-size="8" fill="#555d6b">0</text><text x="165" y="15" text-anchor="middle" font-size="7.6" fill="#555d6b">(drawn to scale)</text>
+        <text x="320" y="15" text-anchor="end" font-size="8" fill="#555d6b">20 ms</text>
+        <rect x="10" y="92" width="9" height="9" fill="#1f4e8c"/><text x="23" y="100" font-size="8">TX pitch, yaw command (48 B)</text>
+        <rect x="10" y="108" width="9" height="9" fill="#a3471b"/><text x="23" y="116" font-size="8">RX pitch, yaw reply (state query)</text>
+        <text x="10" y="135" font-size="8">≈ 0.5 ms per 48-byte frame at 1 Mbps → ~2 ms of traffic per cycle</text>
+        <text x="10" y="147" font-size="8">With 5 Mbps data phase: ≈ 0.15 ms per frame</text>
+      </svg>
+    </div>
+  </div>
+
+  <h3>Frame-time estimate</h3>
+  <span class="eq">t_frame ≈ 67 bit / R_arb + (48 B·8 + CRC + stuffing ≈ 430 bit) / R_data ≈ 0.5 ms at 1 Mbps</span>
+  <p>That gives four frames, about 2 ms, inside a 5 ms reply window, which leaves margin for a retransmission and for bus load to grow when more nodes
+    are added. The frame size was also a deliberate choice: I send registers as <b>float32</b> rather than moteus' scaled
+    int16 format, because int16 position saturates at ±3.28 revolutions and the actuator travels about ±8 rev over ±12°.
+    A few extra bytes per frame remove an overflow failure mode entirely.</p>
+
+  <div class="cols">
+    <div>
+      <h3>Firmware ↔ hardware interface</h3>
+      <ul>
+        <li><b>Devicetree overlay</b> enables FlexCAN3 on Teensy pins 31 (CTX3) and 30 (CRX3), sets both bit rates, and selects it as the
+          board's <span class="mono">zephyr,canbus</span>. The build fails at compile time if CAN-FD is not configured.</li>
+        <li><b>Hardware acceptance filters</b> on all 29 bits of the extended ID, one per controller. Each reply lands in its own message queue,
+          and the CPU never sees unrelated traffic.</li>
+        <li><b>Non-blocking transmit</b>: frames go into a hardware mailbox with a completion callback, so a missing ACK or a stuck bus
+          cannot stall the control thread.</li>
+        <li><b>Watchdog on the motor controller</b>: if commands stop for 100 ms (cable cut, MCU hang), moteus stops driving on its own,
+          independently of my code.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>Bringing up and debugging the physical layer</h3>
+      <p><b>Approach:</b> verify one layer at a time, so a "no reply" can be pinned to wiring, signaling, or firmware.</p>
+      <p><b>Method:</b> probed CAN_H and CAN_L with an oscilloscope and checked the differential levels (recessive ≈ 0 V, dominant ≈ 2 V).
+        Looked for ringing on edges, which points to termination problems. With power off, H–L should read ~60 Ω: two 120 Ω
+        terminators in parallel. Used SocketCAN (<span class="mono">candump</span>) to confirm frame IDs and ACKs independently of the MCU.</p>
+      <p style="margin:0"><b>Firmware side:</b> matched the 29-bit ID layout (prefix, source, destination, reply bit) and bit rates to the
+        moteus configuration, and brought up one actuator at a time with a single-axis bench build, so each fault had only one suspect.</p>
+    </div>
+  </div>
+
+  <h3>Interface summary</h3>
+  <table>
+    <tr><th style="width:17%">Signal</th><th style="width:27%">From → To</th><th style="width:22%">Physical</th><th>Notes</th></tr>
+    <tr><td>CAN TX / RX</td><td>Teensy pin 31 (CTX3) / 30 (CRX3) ↔ transceiver TXD / RXD</td><td>3.3 V logic, single-ended</td><td>MCU pins are not 5 V tolerant</td></tr>
+    <tr><td>CAN_H / CAN_L / GND</td><td>Transceiver ↔ moteus (×2), JST PH-3</td><td>Differential twisted pair</td><td>120 Ω at each end of the bus; 1 Mbps arbitration, 5 Mbps data</td></tr>
+    <tr><td>Telemetry / commands</td><td>Teensy ↔ ground station</td><td>Ethernet, protobuf</td><td>Live TVC dashboard and CSV log</td></tr>
+  </table>
+  <div class="foot"><span>Adit Bansal · Portfolio Sample</span><span>Ranger TVC</span><span>2 / 4</span></div>
+</section>
+
+<!-- ============================== PAGE 3 ============================== -->
+<section class="page p3">
+  <h2><span class="num">03</span>Control chain and safety</h2>
+  <figure>
+    <svg viewBox="0 0 730 92" width="100%" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#14181f"/></marker></defs>
+      <g font-size="8.4">
+        <rect x="2" y="14" width="96" height="50" rx="4" fill="#f3f5f8" stroke="#9aa3b0"/>
+        <text x="50" y="34" text-anchor="middle" font-weight="700">GNC command</text><text x="50" y="48" text-anchor="middle" fill="#555d6b">pitch, yaw (deg)</text>
+        <rect x="114" y="14" width="104" height="50" rx="4" fill="#e6eef8" stroke="#1f4e8c"/>
+        <text x="166" y="31" text-anchor="middle" font-weight="700">Reject NaN/inf</text><text x="166" y="44" text-anchor="middle">clamp ±12°</text><text x="166" y="57" text-anchor="middle" fill="#555d6b">non-finite → hold</text>
+        <rect x="234" y="14" width="96" height="50" rx="4" fill="#e6eef8" stroke="#1f4e8c"/>
+        <text x="282" y="34" text-anchor="middle" font-weight="700">Slew limit</text><text x="282" y="48" text-anchor="middle">≤ 30°/s</text>
+        <rect x="346" y="14" width="116" height="50" rx="4" fill="#e6eef8" stroke="#1f4e8c"/>
+        <text x="404" y="31" text-anchor="middle" font-weight="700">Inverse kinematics</text><text x="404" y="44" text-anchor="middle">angle → length L</text><text x="404" y="57" text-anchor="middle" fill="#555d6b">+ length clamp</text>
+        <rect x="478" y="14" width="104" height="50" rx="4" fill="#e6eef8" stroke="#1f4e8c"/>
+        <text x="530" y="31" text-anchor="middle" font-weight="700">Length → rev</text><text x="530" y="44" text-anchor="middle">6.35 rev/in</text><text x="530" y="57" text-anchor="middle" fill="#555d6b">× direction sign</text>
+        <rect x="598" y="14" width="128" height="50" rx="4" fill="#f3f5f8" stroke="#9aa3b0"/>
+        <text x="662" y="31" text-anchor="middle" font-weight="700">moteus position cmd</text><text x="662" y="44" text-anchor="middle">+ vel/accel/torque limits</text><text x="662" y="57" text-anchor="middle" fill="#555d6b">+ 100 ms watchdog</text>
+        <line x1="98" y1="39" x2="112" y2="39" stroke="#14181f" marker-end="url(#b)"/>
+        <line x1="218" y1="39" x2="232" y2="39" stroke="#14181f" marker-end="url(#b)"/>
+        <line x1="330" y1="39" x2="344" y2="39" stroke="#14181f" marker-end="url(#b)"/>
+        <line x1="462" y1="39" x2="476" y2="39" stroke="#14181f" marker-end="url(#b)"/>
+        <line x1="582" y1="39" x2="596" y2="39" stroke="#14181f" marker-end="url(#b)"/>
+        <path d="M662,64 L662,82 L166,82 L166,68" fill="none" stroke="#555d6b" stroke-dasharray="4 3" marker-end="url(#b)"/>
+        <text x="414" y="78" text-anchor="middle" fill="#555d6b" font-size="7.8">measured position fed back for fault detection and telemetry</text>
+      </g>
+    </svg>
+    <figcaption>Fig. 2. Runs every 20 ms. Each stage is unit-tested on a PC before it touches hardware.</figcaption>
+  </figure>
+
+  <div class="cols">
+    <div>
+      <h3>Gimbal angle → actuator length</h3>
+      <svg viewBox="14 4 291 126" width="100%" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="70" cy="100" r="5" fill="#1f4e8c"/>
+        <text x="58" y="120" font-size="8.4" text-anchor="middle">gimbal pivot</text>
+        <line x1="70" y1="100" x2="290" y2="44" stroke="#14181f" stroke-width="2"/>
+        <text x="190" y="62" font-size="9" font-style="italic">L<tspan font-size="7" dy="2">ts</tspan></text>
+        <text x="186" y="88" font-size="7.6" fill="#555d6b" dy="-4">(fixed, structure)</text>
+        <line x1="70" y1="100" x2="150" y2="14" stroke="#14181f" stroke-width="2"/>
+        <text x="92" y="48" font-size="9" font-style="italic">L<tspan font-size="7" dy="2">re</tspan></text>
+        <text x="80" y="38" font-size="7.6" fill="#555d6b" text-anchor="end" dy="-4">(fixed, engine)</text>
+        <line x1="150" y1="14" x2="290" y2="44" stroke="#a3471b" stroke-width="3"/>
+        <text x="226" y="22" font-size="9.5" font-weight="700" fill="#a3471b">L (actuator)</text>
+        <circle cx="290" cy="44" r="3.5" fill="#14181f"/><circle cx="150" cy="14" r="3.5" fill="#14181f"/>
+        <path d="M92,94 A24,24 0 0,0 85,82" fill="none" stroke="#1f4e8c" stroke-width="1.4"/>
+        <text x="100" y="82" font-size="8.6" fill="#1f4e8c">θ₀ + δ</text>
+      </svg>
+      <span class="eq math"><i>L</i><sup>2</sup> = <i>L</i><sub>ts</sub><sup>2</sup> + <i>L</i><sub>re</sub><sup>2</sup> − 2 <i>L</i><sub>ts</sub><i>L</i><sub>re</sub> cos(<i>θ</i><sub>0</sub> + <i>δ</i>)</span>
+      <p>A law-of-cosines triangle: two fixed arms and the actuator. <i>δ</i> is the gimbal angle. Solving backwards turns the measured
+        motor position into an angle.</p>
+      <p><b>Validated</b> against 241 points per axis from the team's MATLAB model (−12° to +12°).</p>
+      <table>
+        <tr><th>Quantity</th><th>Value</th></tr>
+        <tr><td>Actuator stroke over ±12°</td><td>≈ 2.4 in</td></tr>
+        <tr><td>4 mm lead screw</td><td>6.35 motor rev per inch</td></tr>
+        <tr><td>Motor travel over ±12°</td><td>≈ ±8 rev</td></tr>
+      </table>
+    </div>
+    <div>
+      <h3>Safety supervisor (state machine)</h3>
+      <svg viewBox="0 0 330 150" width="100%" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#14181f"/></marker></defs>
+        <g font-size="8.6" text-anchor="middle">
+          <rect x="4" y="12" width="66" height="26" rx="13" fill="#f3f5f8" stroke="#9aa3b0"/><text x="37" y="29">STARTUP</text>
+          <rect x="92" y="12" width="70" height="26" rx="13" fill="#f3f5f8" stroke="#9aa3b0"/><text x="127" y="29">CLEARING</text>
+          <rect x="184" y="12" width="60" height="26" rx="13" fill="#f3f5f8" stroke="#9aa3b0"/><text x="214" y="29">READY</text>
+          <rect x="258" y="66" width="68" height="26" rx="13" fill="#e3f0e5" stroke="#2f6b3a"/><text x="292" y="83" font-weight="700" fill="#2f6b3a">ENABLED</text>
+          <rect x="146" y="112" width="68" height="26" rx="13" fill="#f8e6dd" stroke="#a3471b"/><text x="180" y="129" font-weight="700" fill="#a3471b">FAULT</text>
+          <rect x="30" y="112" width="66" height="26" rx="13" fill="#f3f5f8" stroke="#9aa3b0"/><text x="63" y="129">HOMING</text>
+          <line x1="70" y1="25" x2="90" y2="25" stroke="#14181f" marker-end="url(#c)"/>
+          <line x1="162" y1="25" x2="182" y2="25" stroke="#14181f" marker-end="url(#c)"/>
+          <path d="M244,25 L292,25 L292,64" fill="none" stroke="#2f6b3a" stroke-width="1.4" marker-end="url(#c)"/>
+          <text x="288" y="48" font-size="7.4" fill="#2f6b3a" text-anchor="end">interlocks pass</text>
+          <path d="M292,92 L292,125 L216,125" fill="none" stroke="#a3471b" stroke-width="1.4" marker-end="url(#c)"/>
+          <text x="258" y="120" font-size="7.4" fill="#a3471b">fault detected</text>
+          <line x1="146" y1="125" x2="98" y2="125" stroke="#14181f" marker-end="url(#c)"/>
+          <text x="122" y="119" font-size="7.4">re-home</text>
+          <path d="M63,112 L63,72 L196,72 L208,40" fill="none" stroke="#14181f" marker-end="url(#c)"/>
+          <text x="128" y="67" font-size="7.4">verified home</text>
+        </g>
+      </svg>
+      <p style="margin:2px 0 2px"><b>The actuators only move when:</b></p>
+      <ul>
+        <li>both controllers reply and are fault-free</li>
+        <li>both are homed and within 0.05 in of center</li>
+        <li>the configuration is complete</li>
+      </ul>
+      <table>
+        <tr><th>Fault</th><th>Detected when</th></tr>
+        <tr><td>No reply</td><td>3 missed cycles (60 ms)</td></tr>
+        <tr><td>Controller fault</td><td>motor controller reports a fault</td></tr>
+        <tr><td>Watchdog</td><td>commands stopped for 100 ms</td></tr>
+        <tr><td>Wrong mode</td><td>not in position mode</td></tr>
+        <tr><td>Tracking error</td><td>off by &gt; 0.10 in for 5 cycles</td></tr>
+      </table>
+      <p style="margin:4px 0 0"><b>On any fault:</b> center the gimbal, stop the faulted actuator, abort the test.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:22px">Three independent layers of protection</h3>
+  <div class="layers">
+    <div class="layer"><div class="n">1</div><b>Firmware interlocks</b><span>Won't enable until homed, centered and healthy. Latches any fault.</span></div>
+    <div class="layer"><div class="n">2</div><b>Motor-controller watchdog</b><span>If commands stop for 100 ms (cut cable, frozen MCU), the motors stop on their own.</span></div>
+    <div class="layer"><div class="n">3</div><b>Hard limits</b><span>Angle clamped to ±12°, speed to 30°/s, plus the motor controller's own current limit.</span></div>
+  </div>
+  <div class="foot"><span>Adit Bansal · Portfolio Sample</span><span>Ranger TVC</span><span>3 / 4</span></div>
+</section>
+
+<!-- ============================== PAGE 4 ============================== -->
+<section class="page">
+  <h2><span class="num">04</span>Real-time design, verification, and results</h2>
+
+  <div class="cols">
+    <div>
+      <h3>Deterministic timing</h3>
+      <ul>
+        <li><b>Absolute-period scheduling:</b> the loop waits on a periodic kernel timer instead of sleeping after its work. Sleeping
+          after the work makes the period 20 ms <i>plus</i> execution time, so the loop drifts. Missed periods are counted as overruns
+          rather than silently stretching the cycle.</li>
+        <li><b>Priority placement:</b> the TVC thread sits below the main controller tick and above all sensor threads, so a slow sensor read
+          can never delay an actuator command.</li>
+        <li><b>No priority inversion:</b> the controller and TVC thread share one small struct behind a mutex. Both only copy data while
+          holding it and never block or log inside it, so the controller never waits on the CAN bus.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Requirements verification (from p. 1)</h3>
+      <table>
+        <tr><th style="width:9%">Req</th><th>Verified by</th></tr>
+        <tr><td class="rid">R1</td><td>Kinematics checked against 241 MATLAB points per axis; ±2° bench sweep logs commanded vs measured angle</td></tr>
+        <tr><td class="rid">R2</td><td>Per-cycle telemetry of jitter, reply latency and overruns (budget below)</td></tr>
+        <tr><td class="rid">R3</td><td>Unit tests: unhomed, off-center, silent and incomplete-config cases never enable</td></tr>
+        <tr><td class="rid">R4</td><td>Unit tests for all 5 latched faults; 100 ms moteus watchdog as a hardware backstop</td></tr>
+        <tr><td class="rid">R5</td><td>Unit tests: NaN holds last angle, clamps, step commands slew-limited</td></tr>
+      </table>
+      <p class="muted" style="font-size:7.8pt;margin-top:3px">55 unit tests run on a PC (Zephyr native_sim) before any hardware; bench builds run one actuator on a bare Teensy.</p>
+    </div>
+  </div>
+
+  <div class="box" style="margin:6px 0 8px">
+    <h3>Timing budget per 20 ms cycle <span class="muted" style="font-weight:400">(design limits, monitored live by built-in telemetry)</span></h3>
+    <div class="stats" style="grid-template-columns:repeat(4,1fr);margin:4px 0">
+      <div class="stat"><div class="v">&lt; 5 ms</div><div class="l">reply window for both actuators</div></div>
+      <div class="stat"><div class="v">~2 ms</div><div class="l">bus traffic per cycle at 1 Mbps (~10% load)</div></div>
+      <div class="stat"><div class="v">60 ms</div><div class="l">to declare a silent actuator faulted (3 cycles)</div></div>
+      <div class="stat"><div class="v">100 ms</div><div class="l">controller-side watchdog: motors stop if commands cease</div></div>
+    </div>
+    <p class="muted" style="margin:0;font-size:7.8pt">CPU cost is tens of µs per cycle. Jitter, per-axis latency and overruns are logged every cycle and shown on the ground dashboard.</p>
+  </div>
+
+  <h3>Problems I found and solved</h3>
+  <div class="cols">
+    <div class="box">
+      <div class="star">
+        <b>Situation</b><span>Reviewing the TVC code before bench testing, I found a path where every command could be pinned to a single actuator length.</span>
+        <b>Task</b><span>Remove the hazard, even though unit tests passed, because it depended on link order.</span>
+        <b>Action</b><span>The cause was C++ static-initialization order. A geometry constant was computed at runtime, but the supervisor
+          used it in its own global constructor, so on some link orders it read 0 and the length clamp collapsed. I made the constant
+          <span class="mono">constexpr</span> (compile-time square root) with a <span class="mono">static_assert</span> on its value.</span>
+        <b>Result</b><span>An entire class of build-order bugs is now impossible, and a geometry change that breaks it fails at compile time instead of on hardware.</span>
+      </div>
+    </div>
+    <div class="box">
+      <div class="star">
+        <b>Situation</b><span>Control logic runs on one 1.5 ms work queue; waiting there for CAN replies (up to 5 ms) would stall it, and the two raced on shared state.</span>
+        <b>Task</b><span>Make the 50 Hz TVC loop deterministic without slowing the 1.5 ms controller.</span>
+        <b>Action</b><span>Moved CAN onto a dedicated thread that alone owns the bus, paced by an absolute kernel timer, with a mutex-guarded hand-off.
+          Moved logging out of the critical section (it could stall the controller) and fixed an undefined NaN-to-int conversion in the bench log.</span>
+        <b>Result</b><span>The controller tick never waits on CAN, and command-to-reply latency stays under 5 ms at a stable 50 Hz, with jitter and overruns measured every cycle instead of hidden.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="cols" style="margin-top:8px">
+    <div>
+      <h3>Next steps (before vehicle integration)</h3>
+      <ul>
+        <li>Enable the 5 Mbps data phase after scope-checking eye quality on the full-length vehicle harness</li>
+        <li>Set an explicit torque limit from the actuator's safe force rating</li>
+        <li>Tune slew and tracking limits from measured step response, then run hardware-in-the-loop with GNC</li>
+      </ul>
+    </div>
+    <div>
+      <h3>What I learned</h3>
+      <ul>
+        <li><b>The electrical layer comes first.</b> A missing terminator or a floating pin looks like a "software bug" until you put a scope on it.</li>
+        <li><b>Fail safe by design, in layers:</b> firmware interlocks, a controller-side watchdog, and a mechanical home reference each cover the others' failures.</li>
+        <li><b>Test before hardware.</b> Keeping the logic hardware-independent let me exercise every safety path on a PC before an actuator ever moved.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot"><span>Adit Bansal · Portfolio Sample</span><span>Ranger TVC</span><span>4 / 4</span></div>
+</section>
+</body>
+</html>
