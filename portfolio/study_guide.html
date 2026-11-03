@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Blue Origin Interview Study Guide</title>
+<style>
+  @page { size: Letter; margin: 0.55in 0.6in 0.6in; }
+  * { box-sizing: border-box; }
+  body { font-family: "Carlito", "Calibri", sans-serif; font-size: 10.6pt; line-height: 1.36; color: #111; margin: 0; }
+  h1 { font-size: 20pt; margin: 0 0 4px; }
+  h2 { font-size: 14.5pt; color: #1d3f6e; border-bottom: 1.5px solid #1d3f6e; padding-bottom: 2px; margin: 18px 0 6px;
+       break-after: avoid; }
+  h2.newpage { break-before: page; margin-top: 0; }
+  h3 { font-size: 11.6pt; margin: 12px 0 4px; break-after: avoid; color: #222; }
+  p { margin: 0 0 6px; }
+  ul, ol { margin: 2px 0 7px; padding-left: 20px; }
+  li { margin: 0 0 3px; }
+  table { border-collapse: collapse; width: 100%; font-size: 9.8pt; margin: 4px 0 8px; break-inside: avoid; }
+  th, td { border: 1px solid #c4c9d0; padding: 3px 6px; text-align: left; vertical-align: top; }
+  th { background: #eef0f3; }
+  .qa { border-left: 3px solid #1d3f6e; padding: 3px 0 3px 10px; margin: 6px 0 9px; break-inside: avoid; }
+  .qa .q { font-weight: 700; }
+  .qa .a { margin-top: 2px; }
+  .key { background: #f3f6fa; border: 1px solid #cdd8e6; border-radius: 4px; padding: 7px 10px; margin: 6px 0 10px; break-inside: avoid; }
+  .warn { background: #fdf3ea; border: 1px solid #ecc9a8; border-radius: 4px; padding: 7px 10px; margin: 6px 0 10px; break-inside: avoid; }
+  .key b.t, .warn b.t { display: block; margin-bottom: 2px; }
+  code, .m { font-family: "DejaVu Sans Mono", monospace; font-size: 9pt; }
+  .small { font-size: 9.4pt; color: #333; }
+  .cover { border-bottom: 2px solid #111; padding-bottom: 8px; margin-bottom: 10px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .script { font-style: italic; background: #fafafa; border: 1px dashed #bbb; padding: 7px 10px; margin: 6px 0 10px; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>Blue Origin Interview Study Guide</h1>
+  <div>Electrical Systems Engineering Intern, Summer 2027 · Tuesday Nov 3, 2:00 PM · Chris Ladd and Luca Frix</div>
+  <div class="small">Built around your portfolio sample (Ranger TVC, the 4-page version you're submitting). Every number here is from your code.</div>
+</div>
+
+<h2>0. How to use this guide</h2>
+<ol>
+  <li><b>First (30 min):</b> Section 1 (game plan + walkthrough script) and Section 9 (cheat sheet). Say the walkthrough out loud twice.</li>
+  <li><b>Then (60–90 min):</b> Section 2, your project page by page. These are the questions you're most likely to get, because interviewers ask about what you put in front of them.</li>
+  <li><b>Then:</b> Sections 3–6, the fundamentals. Skim what you know and slow down on what you don't.</li>
+  <li><b>Last 20 min before:</b> Section 7 (weak spots), Section 8 (behavioral), and the cheat sheet again.</li>
+</ol>
+<div class="key"><b class="t">The one rule</b>If you don't know something, say "I haven't worked with that directly, but here's how I'd reason about it," then reason out loud.
+The recruiter told you they want to see your thought process. A confident wrong answer is the worst outcome; an honest "I'd check X, and here's why" is fine.</div>
+
+<h2>1. Game plan and walkthrough script</h2>
+<h3>Likely structure (50 min)</h3>
+<table>
+  <tr><th style="width:22%">Time</th><th>What happens</th><th style="width:38%">Your goal</th></tr>
+  <tr><td>0–5 min</td><td>Intros, "tell us about yourself"</td><td>45-second pitch (Section 8)</td></tr>
+  <tr><td>5–15 min</td><td>You walk through the portfolio</td><td>5–7 minutes, then stop and invite questions</td></tr>
+  <tr><td>15–40 min</td><td>Technical Q&amp;A: your project, then fundamentals</td><td>Explain the why behind each decision</td></tr>
+  <tr><td>40–50 min</td><td>Behavioral, why Blue, your questions</td><td>Two or three good questions ready</td></tr>
+</table>
+
+<h3>Portfolio walkthrough script (~6 minutes)</h3>
+<p>Share your screen with the PDF. Point at things as you talk. Don't read the page; they can read.</p>
+<div class="script">
+<b>Page 1 (1.5 min).</b> "Ranger is our lab's VTVL liquid rocket. To steer it, the engine sits on a two-axis gimbal pushed by two
+electric linear actuators. I own the TVC system from the flight computer to those actuators. [Point at Fig. 1.] The flight computer is a
+Teensy 4.1 running Zephyr. The main controller runs on a 1.5 ms tick. My TVC thread runs at 50 Hz and is the only thing that talks to the
+CAN-FD bus. On the bus are two moteus motor controllers, one per axis. Each runs its own fast current and position loops at tens of kHz,
+so my job is to send a position setpoint with limits every 20 ms, read back the state, and decide whether the actuators are allowed to
+move at all. [Point at requirements.] I designed to five requirements, and I'll show how each one is verified at the end."<br><br>
+<b>Page 2 (2 min).</b> "This page is the electrical interface. Each actuator needs a 43-byte message per cycle. That's one CAN-FD frame
+versus six classic CAN frames, and since CAN is differential it handles the noise near a firing engine. The key physical-layer decisions:
+a 3.3 V transceiver because the Teensy pins aren't 5 V tolerant; 120 Ω termination at both ends because the moteus boards don't have it;
+twisted pair with a ground. [Point at timing bar.] At 1 Mbps a 48-byte frame takes about half a millisecond, so four frames per cycle is
+about 2 ms of a 20 ms cycle, well inside my 5 ms reply window. For bring-up I went layer by layer: scope on CAN_H and CAN_L, a 60 Ω check
+for termination, SocketCAN to see frames independently of my firmware, then one actuator at a time."<br><br>
+<b>Page 3 (1.5 min).</b> "This is the control chain. A gimbal angle command gets NaN-checked, clamped to ±12°, slew limited to 30°/s,
+converted to an actuator length with a law-of-cosines model from our mechanical team, converted to motor revolutions through the 4 mm lead
+screw, and sent to the moteus with velocity, acceleration and torque limits plus a 100 ms watchdog. [Point at state machine.] The supervisor
+won't enable unless both controllers reply, both are homed and centered, and the config is complete. Five fault types latch it into FAULT,
+which centers healthy axes, stops the faulted one, and aborts the test."<br><br>
+<b>Page 4 (1 min).</b> "The timing design: an absolute-period kernel timer so the loop doesn't drift, priority placement so sensors can't
+delay actuator commands, and a minimal mutex hand-off so the controller never waits on CAN. Each requirement maps to a test. The two problems
+I'm proudest of are a static-initialization-order bug I caught before bench testing and the threading redesign. Next steps are checking
+signal quality on the real harness before turning on the 5 Mbps data rate, setting a torque limit, and hardware-in-the-loop testing. Happy to
+go deeper on any of it."
+</div>
+
+<!-- ======================================================= -->
+<h2 class="newpage">2. Your project, page by page</h2>
+<p>For each claim on your portfolio: what it means, why you made that choice, and how to answer the follow-ups.</p>
+
+<h3>2.1 System overview (page 1)</h3>
+<div class="key"><b class="t">Know cold</b>
+<ul style="margin:0">
+<li><b>Flight computer:</b> Teensy 4.1 = NXP i.MX RT1062, ARM Cortex-M7 at 600 MHz, 1 MB RAM. Runs Zephyr RTOS. Code in C++.</li>
+<li><b>Why FlexCAN3:</b> the RT1062 has three CAN controllers; only CAN3 supports CAN-FD. On the Teensy 4.1 it's on pins 30 (RX) and 31 (TX).</li>
+<li><b>Actuators:</b> BLDC motor directly driving a 4 mm lead screw. 1 rev = 4 mm, so 25.4 / 4 = 6.35 rev per inch.</li>
+<li><b>Motor controllers:</b> moteus r4.1 (open-source BLDC controller by mjbots). Does field-oriented control (FOC) and closes current,
+  velocity and position loops internally at tens of kHz. You talk to it over CAN-FD with a register-based protocol.</li>
+<li><b>Ground link:</b> Ethernet, protobuf messages (nanopb on the Teensy). Python ground client with a live TVC dashboard and CSV logging.</li>
+</ul></div>
+
+<div class="qa"><div class="q">Q: Walk me through what happens in one 20 ms cycle.</div>
+<div class="a">The kernel timer fires. The TVC thread copies the latest pitch/yaw command from the controller (under the mutex). It runs the
+supervisor's step on the replies from last cycle: checks for faults, advances the state machine, and decides what to send each axis (query,
+stop, position command, or set-home). It sends one frame per axis, every frame requesting a reply. It waits up to 5 ms for both replies,
+parses them, records latency, and publishes telemetry back to the controller. Then it blocks on the timer until the next period. CPU time is
+tens of microseconds; the rest is waiting.</div></div>
+
+<div class="qa"><div class="q">Q: Why does the moteus close the position loop instead of your firmware?</div>
+<div class="a">The motor needs current and position control at kHz rates to be stable and stiff. I couldn't do that over a 50 Hz bus. The moteus
+does commutation and the tight loops locally; I send setpoints and limits. It's a standard split: fast inner loop near the hardware, slower
+outer loop in the flight computer. It also means a comms dropout doesn't leave the motor uncontrolled; it keeps holding its last command
+until its watchdog trips.</div></div>
+
+<div class="qa"><div class="q">Q: Why 50 Hz? Isn't that slow for TVC?</div>
+<div class="a">50 Hz is the setpoint rate, not the actuator's control bandwidth; the moteus runs its loops far faster. The engine gimbal is
+a large mass moving at most 30°/s, so the mechanical bandwidth is low. 50 Hz with under 5 ms of latency was enough margin for the GNC rate
+we need. If GNC needed more, the bus has room: about 10% load now, and the 5 Mbps data phase would cut frame time by about 3×.
+<i>Be careful not to claim a GNC bandwidth number you don't know.</i></div></div>
+
+<div class="qa"><div class="q">Q: What exactly did you do versus your teammates?</div>
+<div class="a">Use the page-1 lists. Mine: CAN-FD bring-up, the moteus protocol and transport, the TVC thread, kinematics in firmware, the supervisor,
+bus debugging. Teammates: the controller framework, sensor drivers, the first moteus bench test (which set the controller IDs), and the gimbal
+mechanism and MATLAB model. Being precise here builds trust.</div></div>
+
+<h3>2.2 Requirements R1–R5</h3>
+<p>Be ready for "where did these requirements come from?" Honest answer: they're the requirements I wrote for the TVC software from what the
+vehicle needed (gimbal range from the mechanical design, the loop rate from GNC, and the safety ones from thinking through how it could hurt
+someone or the engine). Systems engineers love hearing that you wrote requirements before code and traced each to a verification.</p>
+<div class="key"><b class="t">Verification methods (the four Blue/NASA use)</b>
+<b>T</b>est, <b>A</b>nalysis, <b>I</b>nspection, <b>D</b>emonstration. Your R1 uses test (unit tests + bench sweep). R2 is analysis (the
+timing budget) plus test (live telemetry). R3–R5 are test (unit tests). If asked "how would you verify R4 on the vehicle?": pull the CAN
+connector during a powered bench run and confirm the axis faults within 60 ms and the moteus stops within 100 ms.</div>
+
+<!-- ======================================================= -->
+<h3>2.3 CAN-FD choice and physical layer (page 2)</h3>
+
+<div class="qa"><div class="q">Q: Why CAN-FD over classic CAN, RS-485, Ethernet, or PWM?</div>
+<div class="a"><b>Classic CAN:</b> 8 data bytes per frame; my 43-byte message would need 6 frames per axis, and moteus speaks CAN-FD anyway.
+<b>RS-485/422:</b> also differential and robust, but no built-in arbitration, error detection/retransmission or acknowledgement; I'd have to
+build a protocol. <b>Ethernet:</b> more bandwidth than needed, more complex, needs switches/magnetics, and it's not what the moteus supports.
+<b>PWM:</b> single-ended, one wire per actuator, no feedback, no error detection. CAN-FD gives a differential multi-drop bus, hardware CRC
+and ACK, automatic retransmission, and priority by ID.</div></div>
+
+<div class="qa"><div class="q">Q: Why 120 Ω, and why at both ends?</div>
+<div class="a">A twisted pair has a characteristic impedance of roughly 120 Ω. When a signal edge travels down the line and hits an end whose
+impedance doesn't match, part of it reflects back. Terminating each end with a resistor equal to the line impedance absorbs the edge.
+Both ends, because the signal can travel either way: any node can transmit. The moteus boards have no termination on board, so I added it.
+<b>Check:</b> with power off, measure across CAN_H and CAN_L: two 120 Ω in parallel = 60 Ω. 120 Ω means one is missing; ~40 Ω means
+there's an extra one.</div></div>
+
+<div class="qa"><div class="q">Q: What happens if you forget termination?</div>
+<div class="a">Reflections cause ringing on the edges. At low bit rates on a short bench cable it may "work"; at higher rates or longer harnesses
+the ringing lands on the sample point and you get bit errors, error frames, and eventually nodes going error-passive or bus-off. Also, without
+any termination the recessive state isn't actively pulled together (the termination is what discharges the bus back to recessive), so edges
+get slow. This is exactly why you verify signal quality on the real harness before raising the data rate.</div></div>
+
+<div class="qa"><div class="q">Q: What do CAN_H and CAN_L look like on a scope?</div>
+<div class="a"><b>Recessive (logic 1):</b> both about 2.5 V, differential ≈ 0 V. <b>Dominant (logic 0):</b> CAN_H ≈ 3.5 V, CAN_L ≈ 1.5 V,
+differential ≈ 2 V. Receivers decide on the difference: above ~0.9 V is dominant, below ~0.5 V is recessive. Use two probes (or a differential
+probe) and the math channel H − L. Look for: clean levels, ringing or overshoot on edges (termination), slow edges (capacitance, missing
+termination), and a dominant ACK bit near the end of each frame (some node received it).</div></div>
+
+<div class="qa"><div class="q">Q: Why twisted pair, and why also run a ground?</div>
+<div class="a">Twisting makes both wires pick up nearly the same induced noise (same loop area alternating sign), so it's common-mode and the
+differential receiver rejects it. It also reduces emissions. The ground keeps both transceivers' common-mode voltages within the allowed
+range (roughly −2 V to +7 V for standard ISO 11898-2 transceivers). Without it, a ground offset between the boards (from motor currents in
+the power return, for example) can push the bus outside that range.</div></div>
+
+<div class="qa"><div class="q">Q: Why a 3.3 V transceiver?</div>
+<div class="a">The i.MX RT1062 I/O runs at 3.3 V and isn't 5 V tolerant. A transceiver with 5 V logic output on RXD would drive 5 V into an MCU
+pin and could damage it. Many transceivers have a separate VIO pin to set the logic level; the bus side is still the standard CAN levels.</div></div>
+
+<div class="qa"><div class="q">Q: What's the standby pin and why does it matter?</div>
+<div class="a">Many CAN transceivers have a standby or silent pin. In standby the transmitter is off (low power, only wake-up detection). If it
+floats, it may sit in standby, so the node can't transmit or even ACK. Tie it to the level for normal mode (or drive it from a GPIO).</div></div>
+
+<h3>2.4 CAN fundamentals you should know</h3>
+<ul>
+<li><b>Arbitration:</b> the bus is wired-AND: dominant (0) overrides recessive (1). Every node transmits its ID bit by bit while listening; if
+it sends recessive but reads dominant, it lost and backs off. Lowest ID wins, and no data is destroyed ("non-destructive bitwise arbitration").
+That's why IDs set priority.</li>
+<li><b>Bit stuffing:</b> after 5 identical bits in a row, the transmitter inserts an opposite bit, so receivers get edges to resynchronize to.
+That's why frame length varies a bit with the data ("+ stuffing" in your equation).</li>
+<li><b>ACK:</b> any receiver that got a valid frame drives the ACK slot dominant. A transmitter with no ACK keeps retrying, which is why your
+transmit is non-blocking with a callback: a missing node won't stall the thread.</li>
+<li><b>Error handling:</b> CRC, stuff, form, bit and ACK errors. Each node has transmit and receive error counters. Above 127 it goes
+<i>error passive</i>; transmit counter above 255 means <i>bus-off</i> (it stops transmitting until recovery). This stops one broken node from
+jamming the bus.</li>
+<li><b>Bit timing:</b> each bit is divided into time quanta: sync, propagation, phase 1, phase 2. The sample point is usually 75–87.5% of the
+bit. All nodes must agree on bit rate and roughly on sample point.</li>
+<li><b>Bus length:</b> during arbitration a bit has to reach the far end and back within one bit time, so at 1 Mbps the bus is limited to
+roughly 40 m. Propagation is about 5 ns/m.</li>
+<li><b>CAN-FD differences:</b> payload up to 64 bytes (lengths 0–8, 12, 16, 20, 24, 32, 48, 64; that's why 43 bytes is padded to 48);
+the <b>BRS</b> (bit rate switch) bit lets the data phase run faster (your 5 Mbps) while arbitration stays at 1 Mbps so all nodes can
+arbitrate; stronger CRC (17 or 21 bits) and a stuff-bit counter. At high data rates transceivers need delay compensation, which is one reason
+you validate on the real harness first.</li>
+<li><b>Extended ID:</b> 29 bits. moteus packs a prefix, the source ID, the destination ID and a "reply requested" bit into it. Your hardware
+filter matches all 29 bits so each controller's replies land in their own queue.</li>
+</ul>
+
+<h3>2.5 Frame-time math</h3>
+<p>One bit at 1 Mbps = 1 µs. A 48-byte CAN-FD frame is about 67 bits in the arbitration phase (start bit, 29-bit ID and control bits, ACK,
+end of frame, inter-frame space) plus about 430 bits in the data phase (384 data bits + CRC + stuff bits + DLC). At 1 Mbps everywhere:
+~500 µs ≈ 0.5 ms. With BRS at 5 Mbps: 67 µs + 430 × 0.2 µs ≈ 153 µs ≈ 0.15 ms.</p>
+<div class="qa"><div class="q">Q: How did you get 10% bus load?</div>
+<div class="a">Four frames per cycle (two commands, two replies) × 0.5 ms = 2 ms per 20 ms = 10%. CAN buses are usually kept under about 50–70%
+load so lower-priority traffic still gets through and there's room for retransmissions.</div></div>
+<div class="qa"><div class="q">Q: Why float32 instead of int16?</div>
+<div class="a">moteus can encode registers as int8, int16, int32 or float. The int16 position format has a resolution of 0.0001 rev, so it
+tops out at ±3.2767 rev. Over ±12° the actuator moves about −8.1 to +7.0 rev, so int16 would overflow. float32 costs a few bytes per register
+but removes the problem; the frame still fits easily in 48 bytes.</div></div>
+
+<h3>2.6 Firmware ↔ hardware interface (page 2)</h3>
+<div class="qa"><div class="q">Q: What's a devicetree?</div>
+<div class="a">A data structure (from Linux, also used by Zephyr) that describes the board's hardware separately from the code: which
+peripherals exist, which pins they use, clock and bit-rate settings. Zephyr turns it into C macros at build time. My overlay enabled FlexCAN3,
+set the bit rates (1 Mbps / 5 Mbps), and selected it as the board's CAN bus. Kconfig is the build-time feature switch system (enable
+CAN, enable CAN-FD mode). I added a compile-time <code>#error</code> if CAN-FD isn't configured, so a wrong build can't reach the bench.</div></div>
+<div class="qa"><div class="q">Q: What do hardware acceptance filters do?</div>
+<div class="a">The CAN controller compares incoming IDs to filters in hardware and only interrupts the CPU for matches. I add one filter per
+moteus, matching all 29 bits, and route each to its own message queue. That keeps unrelated traffic away from the CPU and means the pitch
+reply can never be confused with the yaw reply.</div></div>
+<div class="qa"><div class="q">Q: What if the bus is stuck or a node is unplugged?</div>
+<div class="a">Transmit is non-blocking: <code>can_send</code> with <code>K_NO_WAIT</code> and a completion callback, so the frame goes into a
+hardware mailbox and the thread continues. If nobody ACKs, the controller keeps retrying in hardware, but my thread isn't waiting on it. The
+real liveness check is the reply: no reply for 3 cycles = fault. Then the moteus's own 100 ms watchdog stops the motor if commands stop.</div></div>
+
+<!-- ======================================================= -->
+<h3>2.7 Control chain (page 3)</h3>
+<table>
+  <tr><th style="width:20%">Stage</th><th>What it does</th><th style="width:37%">Why</th></tr>
+  <tr><td>Reject NaN/inf</td><td>A non-finite command holds the previous angle</td><td>Upstream math bugs (divide by zero) produce NaN; NaN passes through clamps and converting NaN to an integer is undefined behavior in C++</td></tr>
+  <tr><td>Clamp ±12°</td><td>Hard limit on gimbal angle</td><td>Mechanical range; protects the engine, feed lines and structure</td></tr>
+  <tr><td>Slew limit 30°/s</td><td>Command moves toward the target by at most 30°/s × 20 ms = 0.6° per cycle</td><td>Prevents violent steps that load the structure or excite resonances; conservative placeholder to be tuned</td></tr>
+  <tr><td>Inverse kinematics</td><td>Angle → actuator length (law of cosines), then a length clamp</td><td>The actuator controls length, not angle</td></tr>
+  <tr><td>Length → rev</td><td>(L − L_center) × 6.35 × direction sign</td><td>moteus works in output revolutions; homing makes center = 0 rev</td></tr>
+  <tr><td>moteus command</td><td>Position + velocity limit (1.5× slew), accel limit (300°/s² equivalent), torque limit, 100 ms watchdog</td><td>moteus' own trajectory limiter can never lag my slew-limited setpoint; watchdog is the comms-loss backstop</td></tr>
+</table>
+
+<h3>2.8 The kinematics</h3>
+<p>Picture a triangle with corners at the gimbal pivot, the actuator's mount on the structure, and the actuator's mount on the engine. Two
+sides are fixed lengths (pivot to structure mount, L<sub>ts</sub>; pivot to engine mount, L<sub>re</sub>). The third side is the actuator, L.
+The angle between the fixed sides is θ₀ at center, and the gimbal angle δ adds to it. Law of cosines:</p>
+<p class="m" style="margin-left:16px">L² = L_ts² + L_re² − 2·L_ts·L_re·cos(θ₀ + δ)</p>
+<ul>
+<li><b>Inverse direction</b> (length → angle, for telemetry and fault checks): cos(θ₀+δ) = (L_ts² + L_re² − L²) / (2·L_ts·L_re), then
+δ = acos(…) − θ₀. The code clamps the acos argument to [−1, 1] so a noisy measurement can't produce NaN.</li>
+<li><b>Why asymmetric travel</b> (−8.1 vs +7.0 rev): L depends on cos(θ₀+δ), which isn't linear in δ, so equal angle steps give unequal length steps.</li>
+<li><b>Sensitivity:</b> dL/dδ ≤ 0.115 in/deg over ±12°. I use the maximum to convert an angle-rate limit into an actuator-speed limit
+conservatively: 30°/s × 0.115 ≈ 3.45 in/s ≈ 22 motor rev/s.</li>
+<li><b>Validation:</b> unit tests compare the firmware to 241 points per axis (−12° to +12° in 0.1° steps) generated from the MATLAB model,
+plus tests that length → angle inverts angle → length and that length increases monotonically with angle.</li>
+<li><b>Precomputed:</b> L_ts² + L_re² and 2·L_ts·L_re are constants computed at compile time.</li>
+</ul>
+<div class="qa"><div class="q">Q: Why closed form instead of a lookup table?</div>
+<div class="a">It's exact, tiny (a sqrt and a cos), invertible analytically, and there's no table to keep in sync with the geometry. A
+Cortex-M7 with a hardware FPU does it in well under a microsecond. A lookup table would make sense if the geometry had no closed-form solution.</div></div>
+
+<h3>2.9 Lead screw and motor physics (likely if they're electrical-leaning)</h3>
+<ul>
+<li><b>Lead</b> = linear travel per revolution = 4 mm (single-start, so lead = pitch).</li>
+<li><b>Force from torque:</b> F = 2π·η·T / lead. Example with T = 1 N·m, lead = 0.004 m and efficiency η ≈ 0.3 (typical ACME lead screw): F ≈ 2π × 0.3 × 1 / 0.004 ≈ 470 N (about 105 lbf). Ball screws are ~0.9 efficient. <b>Find out which type your actuator uses.</b></li>
+<li><b>Backdriving:</b> low-efficiency lead screws resist being pushed back by the load; ball screws backdrive easily. Matters for what the
+gimbal does when the motor is unpowered.</li>
+<li><b>Torque ∝ current</b> in a BLDC: T = K<sub>t</sub> · I. So "torque limit" really means "phase current limit".</li>
+<li><b>Back-EMF:</b> a spinning motor generates voltage ∝ speed (K<sub>e</sub>). At high speed it limits how fast you can go for a given
+supply voltage.</li>
+<li><b>Regeneration:</b> when the load pushes the motor (decelerating, or the engine pushing back), the motor acts as a generator and can
+pump current back into the supply, raising the bus voltage. Supplies need capacitance or a brake resistor to absorb it. Good thing to mention
+if they ask about actuator power.</li>
+<li><b>FOC</b> (field-oriented control): the controller measures phase currents and rotor angle and controls the current vector so it's
+always 90° to the rotor's magnetic field, which gives maximum torque per amp and smooth torque.</li>
+</ul>
+
+<h3>2.10 Safety supervisor (page 3)</h3>
+<table>
+  <tr><th style="width:16%">State</th><th>What it does</th></tr>
+  <tr><td>STARTUP</td><td>Queries both controllers until both reply. Never drives.</td></tr>
+  <tr><td>CLEARING</td><td>Sends stop to both to clear any old fault, until both report stopped.</td></tr>
+  <tr><td>READY</td><td>Checks enable conditions every cycle; reports which ones block (shown on the dashboard).</td></tr>
+  <tr><td>HOMING</td><td>Operator has centered the gimbal with a jig. Sends "set output exact = 0" so moteus treats this position as zero,
+    then waits for the home state to read back. Times out after 25 cycles (0.5 s).</td></tr>
+  <tr><td>ENABLED</td><td>Sends position commands. Checks for faults every cycle.</td></tr>
+  <tr><td>FAULT</td><td>Latched. Healthy axes slew to center, faulted ones are stopped, active sequence aborts. Cleared by re-homing.</td></tr>
+</table>
+<div class="qa"><div class="q">Q: Why do you need homing?</div>
+<div class="a">The moteus encoder measures motor angle, but after power-up it doesn't know where gimbal center is in absolute terms across multiple
+revolutions. Homing defines the current position as zero while the gimbal is mechanically centered. The supervisor refuses to enable until
+moteus reports it has been homed since power-up AND the measured length is within 0.05 in of center. A Teensy reboot alone doesn't need
+re-homing as long as the moteus stayed powered and is still near center.</div></div>
+<div class="qa"><div class="q">Q: Why latch faults instead of auto-recovering?</div>
+<div class="a">A fault means something unexpected happened. Auto-recovering could hide a real problem and let the system oscillate between
+working and failing. Latching forces a person to look, then re-home, which also re-establishes the position reference.</div></div>
+<div class="qa"><div class="q">Q: Why 3 missed cycles, and why 5 cycles for tracking error?</div>
+<div class="a">One missed reply can be a transient (a corrupted frame that got retried late). Three in a row (60 ms) is a real loss, and it's still
+faster than the moteus' 100 ms watchdog, so the flight computer notices first. The tracking-error persistence filter (5 cycles = 100 ms) keeps
+normal lag during a fast move from tripping it. Both are tunable, and the tracking limit (0.10 in) is marked to tune from measured response.</div></div>
+<div class="qa"><div class="q">Q: "Wrong mode" fault?</div>
+<div class="a">If the moteus isn't in position mode while we think it's enabled (it reset, faulted, or timed out), it's not following commands.
+It gets a 3-cycle grace period, then it faults.</div></div>
+<div class="warn"><b class="t">Likely hard question: "Is centering the gimbal actually safe in flight?"</b>
+Good answer: "On the test stand, yes: centering points thrust straight down the stand's axis, and the test aborts. In flight it's a vehicle-level
+decision. Centering a gimbal mid-flight could be worse than holding the last angle, so the right response depends on flight phase, and the real
+answer might be engine shutdown or a redundant actuator. My supervisor makes the policy configurable (hold center or stop), and the abort is
+signaled to the controller, so GNC can own the flight decision." This shows you understand fail-safe vs fail-operational.</div>
+
+<h3>2.11 Real-time design (page 4)</h3>
+<div class="qa"><div class="q">Q: Explain absolute-period scheduling vs sleeping.</div>
+<div class="a"><code>while(1) { work(); sleep(20ms); }</code> has a period of 20 ms + work time + scheduling delay, so it drifts and the
+frequency isn't exactly 50 Hz. A periodic kernel timer fires every 20 ms regardless of how long the work took; the thread blocks on the
+timer status (<code>k_timer_status_sync</code>), which also returns how many periods expired. More than 1 means you missed a cycle, which
+counts as an overrun instead of silently stretching the period.</div></div>
+<div class="qa"><div class="q">Q: Explain your thread priorities.</div>
+<div class="a">In Zephyr a lower number is higher priority, and negative priorities are <i>cooperative</i>: they aren't preempted by other
+threads, only by interrupts, until they block or yield. The controller work queue is −10 (highest), TVC is −7, sensor threads are −5. So when
+both are ready, the controller tick always runs first, and a slow sensor read can never delay a TVC cycle. Because TVC spends almost all its
+time blocked on the timer or reply queues, its CPU use is tiny.</div></div>
+<div class="qa"><div class="q">Q: What's priority inversion and how did you avoid it?</div>
+<div class="a">A high-priority thread waits on a mutex held by a low-priority thread, and a medium-priority thread preempts the low one, so the
+high one waits indefinitely (the classic Mars Pathfinder bug). Zephyr mutexes do priority inheritance (the holder is temporarily boosted),
+but I avoided it by design: the shared data is one small struct, both sides only copy it while holding the lock, and nothing blocks, sends on
+CAN or logs inside the lock. I moved a log call out of the critical section because immediate-mode logging could stall the controller.</div></div>
+<div class="qa"><div class="q">Q: What's jitter and how do you measure it?</div>
+<div class="a">Jitter is variation in the actual period around the nominal 20 ms. Each cycle I timestamp the wake-up with the CPU cycle
+counter, compute the period, and track the max deviation over a 1 s window. Also tracked: per-axis reply latency, max cycle time, overruns,
+missed replies and rejected transmits, logged every 10 s and sent in telemetry.</div></div>
+<div class="warn"><b class="t">Be ready: "What jitter did you actually measure?"</b>
+If you have a real number from the bench, say it. If you don't, say: "The instrumentation reports it every cycle; I don't have a number I'd
+quote with confidence right now. The design budget is that both replies come back within the 5 ms window, and overruns are counted, not
+hidden." Never invent a number.</div>
+
+<h3>2.12 The two problems (page 4)</h3>
+<div class="qa"><div class="q">Static initialization order: explain it like I'm an EE.</div>
+<div class="a">In C++, global objects in different source files are constructed before <code>main()</code>, but the order between files
+isn't defined. A geometry constant (2·L_ts·L_re) was a global computed at startup. The supervisor was also a global whose constructor used
+that constant to precompute the length limits. If the supervisor's file happened to initialize first, the constant was still 0, the min and
+max lengths collapsed to the same value, and every command would be clamped to one length. Unit tests passed because there the order
+happened to be right. Fix: make the constant <code>constexpr</code>, computed by the compiler (I wrote a compile-time Newton's-method square
+root because <code>std::sqrt</code> isn't constexpr), plus a <code>static_assert</code> that its value is in the expected range. Now it can't
+be wrong at runtime, and a geometry change that breaks it fails the build.</div></div>
+<div class="qa"><div class="q">The threading problem: what was racing?</div>
+<div class="a">Waiting for CAN replies (up to 5 ms) inside the 1.5 ms controller tick would stall every control task. Moving CAN to its own
+thread created shared state (latest command in, latest status out) touched by two threads. The fix: one thread owns the bus; the hand-off is a
+single struct behind a mutex, copied in and out; nothing slow happens under the lock. The NaN fix: the bench log converted a float to an
+integer for printing, and converting NaN (e.g. a value that wasn't available that cycle) to an int is undefined behavior in C++, so I check for NaN first.
+<i>Know which specific symptom you saw; if they ask "how did you notice the race?", answer from your memory, not this guide.</i></div></div>
+
+<!-- ======================================================= -->
+<h2 class="newpage">3. Electrical fundamentals</h2>
+<p>Electrical systems roles at Blue cover avionics integration, power distribution, wire harnesses, and test. Expect a few of these, often
+as "how would you approach…" questions.</p>
+
+<h3>3.1 Circuit basics (answer instantly)</h3>
+<table>
+  <tr><th style="width:30%">Concept</th><th>What to know</th></tr>
+  <tr><td>Ohm's law, power</td><td>V = IR. P = VI = I²R = V²/R.</td></tr>
+  <tr><td>KVL / KCL</td><td>Voltages around a loop sum to zero; currents into a node sum to zero.</td></tr>
+  <tr><td>Series / parallel R</td><td>Series add. Parallel: 1/R = Σ1/Rᵢ; two equal resistors in parallel = R/2 (your 60 Ω).</td></tr>
+  <tr><td>Voltage divider</td><td>V<sub>out</sub> = V<sub>in</sub> · R2/(R1+R2). Loading by the next stage changes it.</td></tr>
+  <tr><td>RC circuit</td><td>τ = RC; 63% after τ, ~99% after 5τ. Low-pass cutoff f<sub>c</sub> = 1/(2πRC).</td></tr>
+  <tr><td>RL circuit</td><td>τ = L/R. An inductor resists changes in current: V = L·di/dt. Interrupting current makes a large voltage spike.</td></tr>
+  <tr><td>Capacitor</td><td>I = C·dV/dt. Blocks DC, passes AC. Impedance 1/(2πfC) falls with frequency.</td></tr>
+  <tr><td>Thevenin / Norton</td><td>Any linear network = a voltage source with a series resistance (or current source with parallel R).</td></tr>
+  <tr><td>Impedance matching</td><td>Max power transfer at R<sub>load</sub> = R<sub>source</sub>. For transmission lines: terminate in Z₀ to stop reflections.</td></tr>
+</table>
+
+<h3>3.2 Components</h3>
+<ul>
+<li><b>Diode:</b> conducts one way, ~0.7 V drop (silicon), ~0.3 V (Schottky). Uses: reverse-polarity protection, rectification, flyback.</li>
+<li><b>Flyback diode:</b> across an inductive load (solenoid, relay coil, motor). When the switch opens, the inductor's current continues
+through the diode instead of creating a huge voltage spike that kills the switch. Downside: slow turn-off. A Zener or TVS clamp turns off faster.</li>
+<li><b>TVS diode:</b> clamps transient overvoltage (ESD, load dump, spikes) by conducting hard above its breakdown voltage. Put them on
+connector pins that leave the box, like CAN lines.</li>
+<li><b>MOSFET as a switch:</b> N-channel low-side switch (between load and ground) is simplest: gate high = on. Key specs: R<sub>DS(on)</sub>
+(conduction loss I²R), V<sub>GS(th)</sub> (need enough gate voltage to fully turn on, not just the threshold), V<sub>DS</sub> rating, gate
+charge (switching speed). High-side switching (between supply and load) usually uses P-channel or an N-channel with a gate driver/charge pump.
+High-side is preferred when you want the load grounded when off.</li>
+<li><b>BJT vs MOSFET:</b> BJT is current-controlled (base current), MOSFET is voltage-controlled (gate is a capacitor, ~zero DC current).
+MOSFETs dominate power switching.</li>
+<li><b>Op-amp:</b> ideal rules: no current into the inputs; with negative feedback, the inputs sit at the same voltage. Non-inverting gain
+= 1 + Rf/Rg; inverting gain = −Rf/Rin. Uses: amplifying sensor signals, buffering, filtering, differential/instrumentation amps.</li>
+<li><b>Pull-up/pull-down resistors:</b> set a defined default level on an input that would otherwise float (like your transceiver standby
+pin). Required on open-drain buses like I²C.</li>
+<li><b>Decoupling capacitors:</b> small ceramic caps (e.g. 100 nF) right at each IC power pin supply fast current spikes locally, so the
+switching current doesn't travel through the power trace inductance. Plus bulk caps for slower demand.</li>
+</ul>
+
+<h3>3.3 Power</h3>
+<ul>
+<li><b>Linear regulator (LDO):</b> simple and quiet, but wastes (V<sub>in</sub> − V<sub>out</sub>) × I as heat. 12 V → 3.3 V at 1 A wastes
+8.7 W. Efficiency ≈ V<sub>out</sub>/V<sub>in</sub>.</li>
+<li><b>Switching converters:</b> buck (step down), boost (step up), buck-boost. 85–95% efficient, but produce switching noise, so they need
+filtering and layout care.</li>
+<li><b>Inrush current:</b> big input capacitors look like a short at power-on. Limit it with a soft-start, NTC thermistor, or hot-swap controller.</li>
+<li><b>Protection:</b> fuses (one-time) or resettable PTCs/eFuses for overcurrent; a series diode or ideal-diode MOSFET for reverse polarity;
+TVS for transients; undervoltage lockout so electronics don't brown out unpredictably.</li>
+<li><b>Power budget:</b> list every load's voltage, nominal and peak current, and duty cycle; sum per rail; add margin (commonly 20–50%);
+check battery capacity (Ah) and wire/connector ratings against peaks. Motor stall current is the peak to design for.</li>
+<li><b>Batteries:</b> capacity in Ah, energy in Wh = V × Ah. Li-ion cell ~3.7 V nominal, 4.2 V full, ~3.0 V empty. C-rate: 1C draws the full
+capacity in 1 hour.</li>
+</ul>
+<div class="warn"><b class="t">Know your actuator power before 2:00</b>
+They may ask "how are the actuators powered?" Find out the supply voltage, what battery or supply, the moteus input current at stall, and whether
+it's fused. If you don't know: "That's owned by our electrical lead; the moteus reports bus voltage in my telemetry, and here's how I'd size the
+supply..." (then walk through a power budget). Mention regen: a backdriven motor pumps energy back into the bus.</div>
+
+<h3>3.4 Wire harnesses and connectors (core electrical systems topic)</h3>
+<ul>
+<li><b>Wire sizing:</b> pick gauge for (1) current without overheating (with derating for bundles, altitude and temperature: wires in a bundle can
+carry less than in free air), and (2) acceptable voltage drop: ΔV = I × R<sub>wire</sub> × length (both directions!). Rough numbers:
+22 AWG ≈ 53 mΩ/m, 20 AWG ≈ 33 mΩ/m, 18 AWG ≈ 21 mΩ/m, 16 AWG ≈ 13 mΩ/m. Every 3 AWG steps is about 2× the area.</li>
+<li><b>Worked example:</b> 10 A over 2 m of 18 AWG (out and back = 4 m): R ≈ 4 × 0.021 = 0.084 Ω; ΔV ≈ 0.84 V; loss ≈ 8.4 W. On a 24 V
+bus that's 3.5% drop. Fine for a motor, maybe not for a sensor reference.</li>
+<li><b>Twisting:</b> twist signal pairs and power/return pairs together. That minimizes the loop area, which reduces both emitted and picked-up
+magnetic noise.</li>
+<li><b>Shielding:</b> a braided or foil shield blocks electric-field coupling. Low-frequency rule: ground the shield at one end to avoid ground
+loops. At high frequency, ground at both ends (360° at the connector backshell). Many aerospace harnesses do both ends.</li>
+<li><b>Connectors:</b> aerospace uses circular MIL-spec (e.g. MIL-DTL-38999) with locking, keying, sealing and backshells. Derate pin
+current, use keying so mating connectors can't be swapped, and don't put power and sensitive signals on adjacent pins.</li>
+<li><b>Crimp vs solder:</b> crimps are preferred in flight hardware: solder wicks into the strands and makes a stiff point that cracks under vibration.</li>
+<li><b>Strain relief, service loops, bend radius, labeling,</b> and keeping the harness away from heat and sharp edges.</li>
+<li><b>Testing a harness:</b> continuity (each pin goes where the drawing says), isolation/insulation resistance (no shorts between pins or to
+shield, often a "hipot" or megger test at high voltage), and checking against the wiring diagram/pinout (the ICD).</li>
+</ul>
+
+<h3>3.5 Grounding and EMI</h3>
+<ul>
+<li><b>Ground loop:</b> two grounded points at slightly different potentials connected by more than one path. Current flows in the loop
+and shows up as noise on signals that use ground as reference. Fix: single-point grounding, differential signals, isolation.</li>
+<li><b>Return current:</b> every current returns to its source. At high frequency the return follows the path of least <i>inductance</i>,
+right under the signal trace. Breaking the return path (split ground plane) creates big loops that radiate.</li>
+<li><b>Separate noisy and quiet:</b> keep motor/power currents from flowing through the ground reference of sensitive analog circuits.
+Star ground or separate returns that join at one point.</li>
+<li><b>Differential signaling</b> (CAN, RS-422, LVDS, Ethernet) rejects common-mode noise; that's your page-2 argument.</li>
+<li><b>Coupling types:</b> capacitive (electric field, high dV/dt; fix with distance or shielding), inductive (magnetic, high dI/dt; fix by
+reducing loop area and twisting), conducted (through shared power or ground; fix with filtering).</li>
+</ul>
+
+<h3>3.6 Sensors and signal acquisition</h3>
+<ul>
+<li><b>ADC:</b> resolution N bits → step (LSB) = V<sub>ref</sub>/2<sup>N</sup>. 12-bit at 3.3 V ≈ 0.8 mV. SAR ADCs are common in
+microcontrollers; sigma-delta for high resolution at low speed.</li>
+<li><b>Nyquist:</b> sample at more than twice the highest frequency in the signal, or higher frequencies alias (fold) into the band you care
+about. Put an analog low-pass (anti-aliasing) filter before the ADC.</li>
+<li><b>Pressure transducers:</b> often 0.5–4.5 V ratiometric or 4–20 mA. A 4–20 mA current loop ignores wire resistance and voltage drop,
+and 0 mA means a broken wire, so you can detect the fault.</li>
+<li><b>Thermocouples:</b> two metals produce a small voltage (~40 µV/°C for type K) proportional to the temperature <i>difference</i>
+between the hot junction and where the wires terminate, so you need cold-junction compensation. Tiny signal, so amplify and filter.</li>
+<li><b>Strain gauge / Wheatstone bridge:</b> four resistors; the gauge's tiny resistance change unbalances the bridge, giving a small
+differential voltage you amplify with an instrumentation amp. Used in load cells (thrust measurement).</li>
+<li><b>Encoders:</b> quadrature (A/B channels 90° apart, gives direction) or absolute. The moteus uses a magnetic encoder on the motor.</li>
+</ul>
+
+<h3>3.7 Digital interfaces</h3>
+<table>
+  <tr><th style="width:14%">Bus</th><th style="width:22%">Wires</th><th>Notes</th></tr>
+  <tr><td>UART</td><td>TX, RX (+GND)</td><td>Asynchronous, agreed baud rate, point to point, single-ended. RS-232/422/485 are physical layers for it; RS-422/485 are differential.</td></tr>
+  <tr><td>SPI</td><td>SCLK, MOSI, MISO, CS per device</td><td>Synchronous, full duplex, fast (MHz–tens of MHz), short distances on a board. Master drives the clock.</td></tr>
+  <tr><td>I²C</td><td>SDA, SCL</td><td>Two wires, open-drain with pull-ups, addressed, slower (100 k–1 MHz), on-board. Pull-up value trades speed (rise time) against power.</td></tr>
+  <tr><td>CAN / CAN-FD</td><td>CAN_H, CAN_L (+GND)</td><td>Differential, multi-drop, arbitration, CRC, ACK; automotive and many vehicles.</td></tr>
+  <tr><td>Ethernet</td><td>Differential pairs + magnetics</td><td>High bandwidth, switched; transformer-isolated. Your ground link.</td></tr>
+  <tr><td>MIL-STD-1553</td><td>Differential, transformer-coupled</td><td>Classic aerospace command/response bus, 1 Mbps, dual-redundant. Worth knowing it exists.</td></tr>
+</table>
+
+<!-- ======================================================= -->
+<h2 class="newpage">4. Embedded software and RTOS concepts</h2>
+<ul>
+<li><b>RTOS vs bare metal:</b> an RTOS gives threads with priorities, preemption, timers, and synchronization (mutexes, semaphores, queues),
+with predictable timing. Bare metal is a super-loop plus interrupts.</li>
+<li><b>Deterministic</b> means the worst-case timing is bounded and known, not just the average. Avoid unbounded loops, dynamic memory,
+blocking calls with no timeout, and logging in hot paths.</li>
+<li><b>Mutex vs semaphore:</b> a mutex is ownership (lock/unlock by the same thread, supports priority inheritance); a semaphore is a counter
+used for signaling between threads or ISRs. You used a mutex for shared state and a timer/message queue for signaling.</li>
+<li><b>Message queue:</b> thread-safe FIFO; your CAN receive callback (ISR context) puts frames in a queue, and the thread takes them with a
+timeout. That's how you wait "up to 5 ms" for replies.</li>
+<li><b>ISRs:</b> keep them short; no blocking. Hand work to a thread.</li>
+<li><b>Why allocation-free:</b> malloc/new in real time is non-deterministic (variable time) and fragments memory over time. Your moteus
+encoder/decoder uses fixed 64-byte buffers, no heap.</li>
+<li><b>volatile vs atomic:</b> <code>volatile</code> stops the compiler from caching a variable (for hardware registers), but doesn't make
+read-modify-write safe between threads. Use atomics or a mutex for that. Your transmit-error counters are atomics because the ISR callback
+increments them.</li>
+<li><b>Undefined behavior:</b> e.g. converting NaN or an out-of-range float to an int. The compiler may do anything. Check before converting.</li>
+<li><b>std::expected:</b> C++23 type holding either a value or an error, used instead of exceptions (often disabled on embedded).</li>
+<li><b>Watchdog timers:</b> hardware that resets the system (or, for the moteus, stops the motor) if software stops "petting" it. Catches hangs.</li>
+<li><b>Unit tests on native_sim:</b> Zephyr can build for the host PC, so hardware-independent logic runs as a normal program. That's why you
+kept the supervisor, kinematics and protocol free of CAN/driver dependencies.</li>
+</ul>
+
+<h2>5. Controls, briefly</h2>
+<ul>
+<li><b>PID:</b> P reacts to the current error, I removes steady-state error (but can wind up while saturated), D damps by reacting to the rate
+of change (but amplifies noise, so it's usually filtered). Anti-windup: stop integrating when the output is saturated.</li>
+<li><b>Cascaded loops:</b> inner loop much faster than the outer loop (rule of thumb 5–10×). Yours: moteus current → velocity → position
+at kHz rates, inside your 50 Hz setpoint loop, inside GNC.</li>
+<li><b>Latency hurts stability:</b> a delay adds phase lag that grows with frequency and eats phase margin. That's why you keep reply latency
+under 5 ms and bounded.</li>
+<li><b>Saturation and rate limits</b> are nonlinearities: the controller has to know about them or they cause windup and overshoot.</li>
+<li><b>TVC physics:</b> pitching moment = T · d · sin δ, where T is thrust, d is the distance from the gimbal to the vehicle's center of mass,
+and δ is the gimbal angle. Lateral force = T sin δ; you lose T(1 − cos δ) of axial thrust (about 2% at 12°).</li>
+</ul>
+
+<h2>6. Systems engineering and safety</h2>
+<ul>
+<li><b>Requirements:</b> verifiable ("shall respond within 5 ms"), not vague ("shall be fast"). Each has a verification method (TAID) and
+traces up to a higher-level need and down to design. You did this on a small scale with R1–R5.</li>
+<li><b>Interface control document (ICD):</b> defines every signal between subsystems: pinout, voltage levels, protocol, timing. Your
+page-2 interface table is a mini ICD.</li>
+<li><b>FMEA</b> (failure modes and effects analysis): for each component, list how it can fail, the effect, how you'd detect it, and the
+mitigation. Example for your system: <i>CAN wire breaks → no replies → detected in 60 ms → FAULT, gimbal to center, abort; moteus watchdog
+stops the motor at 100 ms.</i></li>
+<li><b>Single points of failure:</b> in your design, the CAN bus is shared by both actuators, so a short on CAN_H/CAN_L takes out both axes.
+A flight design might use separate buses or a redundant bus. Saying this unprompted shows maturity.</li>
+<li><b>Fail-safe vs fail-operational:</b> fail-safe = go to a safe state (stop) when something breaks; fine for a test stand. Fail-operational
+= keep working through a failure (needs redundancy); often required for crewed vehicles in critical phases.</li>
+<li><b>Test like you fly:</b> test with flight harnesses, flight software builds and realistic conditions. Your "verify signal quality on
+the real vehicle harness before raising the bit rate" is an example.</li>
+<li><b>Hardware-in-the-loop (HIL):</b> real flight computer and/or actuators connected to a simulation of the rest of the vehicle. Your next step.</li>
+</ul>
+
+<!-- ======================================================= -->
+<h2 class="newpage">7. Your weak spots and honest answers</h2>
+<p>Interviewers probe the edges of what's on the page. Prepare these so they don't surprise you.</p>
+<div class="qa"><div class="q">"Has this flown or been hot-fired?"</div>
+<div class="a">Be precise and honest: it's been developed and tested in unit tests and on the bench with a single actuator. Vehicle integration and
+hot fire are next. Say what's pending: the 5 Mbps data rate on the real harness, an explicit torque limit, tuning from measured step response, HIL.</div></div>
+<div class="qa"><div class="q">"Your background looks software-heavy. Why electrical systems?"</div>
+<div class="a">"My degree is ECE and my coursework includes linear circuits and embedded systems, but my most interesting problems on this project
+were at the hardware boundary: voltage levels, termination, timing on the wire, what a motor controller does on its own. I want to go deeper into
+the electrical side: power, harnessing, avionics integration and test. That's why this role." Your resume also lists Altium, KiCad and PCB
+design. Have a specific example ready if they ask.</div></div>
+<div class="qa"><div class="q">"What are the numbers from your bench test?"</div>
+<div class="a">Only quote numbers you actually measured. Otherwise describe what was measured and how, and what the design limits are.</div></div>
+<div class="qa"><div class="q">"Why did you pick ±12°, 30°/s, 0.10 in, 0.05 in?"</div>
+<div class="a">±12° is the mechanical gimbal range from the mechanical team. 30°/s, the 300°/s² acceleration limit and the 0.10 in tracking
+limit are conservative starting values to be tuned on hardware. 0.05 in homing tolerance is small relative to the 2.4 in stroke (about half a degree), tight enough to catch a wrong home but loose enough for normal settling. Saying "placeholder, here's how I'd tune it" is a good answer.</div></div>
+<div class="qa"><div class="q">"What would you do differently?"</div>
+<div class="a">Design the power side alongside the software: a power budget for the actuators, current limits and regen handling from day one.
+Get the real harness on the bench earlier. Consider separate CAN buses per axis or redundancy for flight.</div></div>
+<div class="qa"><div class="q">Code they might ask you to sketch</div>
+<div class="a">Be able to write a slew limiter: <code>step = max_rate * dt; out = cur + clamp(target - cur, -step, step);</code> and a clamp
+that rejects NaN: <code>if (!std::isfinite(x)) return last; return std::clamp(x, -lim, lim);</code></div></div>
+
+<h2>8. Behavioral</h2>
+<h3>Elevator pitch (45 seconds)</h3>
+<div class="script">"I'm Adit, a junior in Electrical and Computer Engineering at USC. On the USC Liquid Propulsion Lab's GNC team I own the
+thrust vector control system for Ranger, our VTVL rocket: the CAN-FD bus to the motor controllers, the real-time control thread, and the safety
+logic that decides when the engine gimbal can move. This past summer I was a network engineering intern at EchoStar, where I automated
+configuration intake and cut turnaround from days to under 15 minutes. And I do research on UAV path planning at USC. What ties it together is
+that I like making systems that touch real hardware work reliably. I want to spend next summer doing that on flight hardware at Blue."</div>
+
+<h3>Why Blue Origin</h3>
+<ul>
+<li>The mission: a future where millions of people live and work in space for the benefit of Earth. Say what that means to you personally.</li>
+<li><b>Gradatim Ferociter</b> ("step by step, ferociously"): your project was built that way, from unit tests to single-actuator bench builds to the
+full system, each step before the next.</li>
+<li>Reusability and the vehicles: New Shepard (suborbital, BE-3PM engine), New Glenn (orbital, seven BE-4 LOX/methane engines on the reusable
+first stage), BE-4 also powering ULA's Vulcan, and Blue Moon landers for Artemis. Mention one you actually find exciting.
+<b>Read the latest Blue Origin news this morning</b> so you can mention something current; don't rely on this guide for recent events.</li>
+<li>Your interest is specifically in electrical systems on vehicles like these: power, avionics, harnesses, and their verification.</li>
+<li>Read the Leadership Principles page linked in your email and pick two to tie to your stories.</li>
+</ul>
+
+<h3>STAR stories to have ready</h3>
+<table>
+  <tr><th style="width:24%">Prompt</th><th>Story</th></tr>
+  <tr><td>Technical challenge</td><td>CAN-FD bring-up / threading redesign (page 4)</td></tr>
+  <tr><td>Finding a hidden problem</td><td>Static-init-order bug caught in review before hardware</td></tr>
+  <tr><td>Impact / efficiency</td><td>EchoStar: config intake from days to under 15 minutes, 95%+ less manual entry, 1,000+ parameters</td></tr>
+  <tr><td>Leadership</td><td>Beta Theta Pi VP: 60+ members, $5,000+ raised</td></tr>
+  <tr><td>Working with another team</td><td>Turning the mechanical team's MATLAB model into firmware and validating against it</td></tr>
+  <tr><td>Failure / what you'd change</td><td>Pick a real one. Close with what you changed afterward.</td></tr>
+</table>
+<p class="small">Format: Situation (1–2 lines), Task (your part), Action (what you did, tools, tradeoffs), Result (a number) + what you'd do next time.
+Keep each to about 2 minutes.</p>
+
+<h3>Questions to ask them</h3>
+<ul>
+<li>What does the electrical systems team own day to day on your program: harness, power, avionics integration, test?</li>
+<li>What did a strong intern's project look like last summer?</li>
+<li>How does your team balance moving fast with flight-hardware rigor?</li>
+<li>What's a recent problem your team solved that you're proud of?</li>
+</ul>
+
+<!-- ======================================================= -->
+<h2 class="newpage">9. One-page cheat sheet</h2>
+<table>
+  <tr><th style="width:42%">Item</th><th>Value</th></tr>
+  <tr><td>Flight computer</td><td>Teensy 4.1, i.MX RT1062 Cortex-M7 600 MHz, Zephyr RTOS, C++</td></tr>
+  <tr><td>CAN controller / pins</td><td>FlexCAN3 (only CAN-FD controller on the RT1062), pin 31 TX, pin 30 RX</td></tr>
+  <tr><td>Bit rates</td><td>1 Mbps arbitration, 5 Mbps data (BRS currently off: 1 Mbps everywhere)</td></tr>
+  <tr><td>Message size</td><td>43 bytes → padded to 48 (CAN-FD sizes: 12, 16, 20, 24, 32, 48, 64)</td></tr>
+  <tr><td>Frame time</td><td>~0.5 ms at 1 Mbps; ~0.15 ms with 5 Mbps data</td></tr>
+  <tr><td>Bus traffic</td><td>4 frames/cycle ≈ 2 ms of 20 ms ≈ 10% load</td></tr>
+  <tr><td>Loop</td><td>50 Hz (20 ms), absolute-period kernel timer, 5 ms reply window</td></tr>
+  <tr><td>Priorities</td><td>Controller −10, TVC −7, sensors −5 (lower = higher, negative = cooperative)</td></tr>
+  <tr><td>CAN levels</td><td>Recessive: both ~2.5 V, diff ≈ 0. Dominant: H ≈ 3.5, L ≈ 1.5, diff ≈ 2 V</td></tr>
+  <tr><td>Termination</td><td>120 Ω each end; 60 Ω across H–L with power off</td></tr>
+  <tr><td>Logic level</td><td>3.3 V; RT1062 pins not 5 V tolerant</td></tr>
+  <tr><td>Gimbal</td><td>±12°, 2 axes, ~2.4 in stroke (17.08 → 18.36 → 19.47 in)</td></tr>
+  <tr><td>Lead screw</td><td>4 mm lead, 1:1 direct drive → 6.35 rev/in; ±12° ≈ −8.1 / +7.0 rev</td></tr>
+  <tr><td>Why float32</td><td>int16 position saturates at ±3.2767 rev</td></tr>
+  <tr><td>Kinematics</td><td>L² = L_ts² + L_re² − 2·L_ts·L_re·cos(θ₀+δ); dL/dδ ≤ 0.115 in/deg</td></tr>
+  <tr><td>Limits</td><td>Slew 30°/s (0.6°/cycle); moteus velocity limit 1.5× slew; accel 300°/s²</td></tr>
+  <tr><td>Enable conditions</td><td>Both reply, no faults, homed since power-up, within 0.05 in of center, config complete</td></tr>
+  <tr><td>Faults (5)</td><td>No reply (3 cycles / 60 ms), moteus fault, watchdog timeout, wrong mode (3-cycle grace), tracking &gt; 0.10 in for 5 cycles</td></tr>
+  <tr><td>Fault response</td><td>Latched; healthy axes to center; faulted axes stopped; sequence aborts; clear by re-homing</td></tr>
+  <tr><td>moteus watchdog</td><td>100 ms</td></tr>
+  <tr><td>Homing</td><td>Jig at center → "set output exact = 0" → verify home state; 0.5 s timeout</td></tr>
+  <tr><td>Tests</td><td>55 unit tests (29 supervisor, 11 kinematics, 15 moteus protocol); 241 MATLAB points per axis; ±2° bench sweep at 0.5°/s</td></tr>
+  <tr><td>Static-init bug</td><td>Global constant used in another global's constructor; fix: constexpr + static_assert</td></tr>
+  <tr><td>Next steps</td><td>5 Mbps on real harness, explicit torque limit, tune limits from step response, HIL</td></tr>
+</table>
+<div class="key"><b class="t">Fundamentals to say without thinking</b>
+V = IR · P = I²R · τ = RC · f<sub>c</sub> = 1/(2πRC) · V = L·di/dt · Nyquist: f<sub>s</sub> &gt; 2f<sub>max</sub> · LSB = V<sub>ref</sub>/2<sup>N</sup> ·
+lead-screw force F = 2πηT/lead · BLDC torque T = K<sub>t</sub>·I · CAN: lowest ID wins, 5-bit stuffing, bus-off at TEC &gt; 255 ·
+twisted pair = smaller loop area · single-point ground avoids ground loops · flyback diode on inductive loads.</div>
+<div class="key"><b class="t">Mindset</b>Talk through your reasoning. Say "I don't know, here's how I'd find out" when true. Tie answers back to
+reliability, safety and verification. End answers; don't ramble. Have fun with it: you built something real.</div>
+
+</body>
+</html>
