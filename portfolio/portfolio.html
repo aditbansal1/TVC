@@ -55,6 +55,20 @@
   .tag { display: inline-block; font-size: 7pt; font-weight: 600; padding: 0 5px; border-radius: 8px; }
   .tag.me { background: var(--accent); color: #fff; }
   .tag.team { background: #e2e5ea; color: #39404c; }
+  .p3 { font-size: 10.4pt; line-height: 1.45; }
+  .p3 h3 { font-size: 11pt; margin: 14px 0 6px; }
+  .p3 table { font-size: 9.6pt; } .p3 th { font-size: 9.2pt; } .p3 th, .p3 td { padding: 5px 6px; }
+  .p3 .eq { font-size: 9.6pt; padding: 6px 8px; } .p3 figcaption { font-size: 8.6pt; }
+  .p3 .cols { gap: 22px; margin-top: 10px; } .p3 li { margin-bottom: 4px; }
+  .p3 .cols svg { margin: 6px 0 10px; }
+  .p3 { font-size: 11pt; } .p3 h2 { margin-bottom: 18px; } .p3 figure { margin: 0 0 26px; }
+  .p3 .cols { margin-top: 0; } .p3 .cols > div { display: flex; flex-direction: column; }
+  .p3 h3 { margin-top: 20px; }
+  .layers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .layer { background: var(--accent-soft); border: 1px solid #c4d4ea; border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
+  .layer .n { width: 22px; height: 22px; border-radius: 11px; background: var(--accent); color: #fff; font-weight: 700; font-size: 10pt;
+    display: flex; align-items: center; justify-content: center; }
+  .layer span { font-size: 9.8pt; color: #39404c; } .p3 .cols h3:first-child { margin-top: 0; }
 </style>
 </head>
 <body>
@@ -273,8 +287,8 @@
 </section>
 
 <!-- ============================== PAGE 3 ============================== -->
-<section class="page">
-  <h2><span class="num">03</span>Control chain: from gimbal angle to motor revolutions</h2>
+<section class="page p3">
+  <h2><span class="num">03</span>Control chain and safety</h2>
   <figure>
     <svg viewBox="0 0 730 92" width="100%" xmlns="http://www.w3.org/2000/svg">
       <defs><marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#14181f"/></marker></defs>
@@ -297,16 +311,16 @@
         <line x1="462" y1="39" x2="476" y2="39" stroke="#14181f" marker-end="url(#b)"/>
         <line x1="582" y1="39" x2="596" y2="39" stroke="#14181f" marker-end="url(#b)"/>
         <path d="M662,64 L662,82 L166,82 L166,68" fill="none" stroke="#555d6b" stroke-dasharray="4 3" marker-end="url(#b)"/>
-        <text x="414" y="78" text-anchor="middle" fill="#555d6b" font-size="7.8">measured rev → length → angle (forward kinematics), used for fault detection and telemetry</text>
+        <text x="414" y="78" text-anchor="middle" fill="#555d6b" font-size="7.8">measured position fed back for fault detection and telemetry</text>
       </g>
     </svg>
-    <figcaption>Fig. 2. The command chain runs every 20 ms. Every stage is a pure function, unit-tested on the host before it ever touches hardware.</figcaption>
+    <figcaption>Fig. 2. Runs every 20 ms. Each stage is unit-tested on a PC before it touches hardware.</figcaption>
   </figure>
 
   <div class="cols">
     <div>
-      <h3>Inverse kinematics (closed form)</h3>
-      <svg viewBox="0 0 330 128" width="100%" xmlns="http://www.w3.org/2000/svg">
+      <h3>Gimbal angle → actuator length</h3>
+      <svg viewBox="14 4 291 126" width="100%" xmlns="http://www.w3.org/2000/svg">
         <circle cx="70" cy="100" r="5" fill="#1f4e8c"/>
         <text x="58" y="120" font-size="8.4" text-anchor="middle">gimbal pivot</text>
         <line x1="70" y1="100" x2="290" y2="44" stroke="#14181f" stroke-width="2"/>
@@ -321,23 +335,16 @@
         <path d="M92,94 A24,24 0 0,0 85,82" fill="none" stroke="#1f4e8c" stroke-width="1.4"/>
         <text x="100" y="82" font-size="8.6" fill="#1f4e8c">θ₀ + δ</text>
       </svg>
-      <span class="eq">L(δ)² = L_ts² + L_re² − 2·L_ts·L_re·cos(θ₀ + δ)</span>
-      <p>δ is the commanded gimbal angle and θ₀ is the angle between the fixed arms at center. Only <i>L</i> changes, so I precompute the
-        constants at <b>compile time</b>. The inverse, δ(L) = acos(…) − θ₀, turns measured motor position back into an angle. Across ±12°,
-        |dL/dδ| ≤ 0.115 in/deg, which I use to convert angular rate limits into actuator velocity limits conservatively.</p>
-      <p><b>Validated against the mechanical model:</b> 241 test vectors per axis (−12° to +12° in 0.1° steps) from the team's MATLAB model,
-        enforced by unit tests. While building them I noticed the supplied yaw table was <b>identical to the pitch table</b>, even though the
-        MATLAB model gives yaw a different center angle (a ~0.35 in difference in center length). I flagged it to the mechanical team instead of
-        guessing, and the yaw axis stays disabled until its geometry and motor direction are confirmed.</p>
-      <h3>Sanity-check numbers</h3>
+      <span class="eq">L² = L_ts² + L_re² − 2·L_ts·L_re·cos(θ₀+δ)</span>
+      <p>A law-of-cosines triangle: two fixed arms and the actuator. δ is the gimbal angle. Solving backwards turns the measured
+        motor position into an angle.</p>
+      <p><b>Validated</b> against 241 points per axis from the team's MATLAB model (−12° to +12°).</p>
       <table>
         <tr><th>Quantity</th><th>Value</th></tr>
-        <tr><td>Actuator length, −12° → center → +12°</td><td>17.08 → 18.36 → 19.47 in</td></tr>
-        <tr><td>Motor travel over ±12° (6.35 rev/in)</td><td>−8.1 to +7.0 rev (asymmetric: cos nonlinearity)</td></tr>
-        <tr><td>30°/s slew × 0.115 in/deg</td><td>≤ 3.45 in/s ≈ 22 rev/s at the motor</td></tr>
-        <tr><td>Lead: 4 mm single-start, 1:1 drive</td><td>25.4 / 4 = 6.35 rev per inch</td></tr>
+        <tr><td>Actuator stroke over ±12°</td><td>≈ 2.4 in</td></tr>
+        <tr><td>4 mm lead screw</td><td>6.35 motor rev per inch</td></tr>
+        <tr><td>Motor travel over ±12°</td><td>≈ ±8 rev</td></tr>
       </table>
-      <p class="muted" style="font-size:7.6pt;margin-top:3px">The ±8 rev travel is why position is sent as float32 rather than int16 (saturates at ±3.28 rev); see p. 2.</p>
     </div>
     <div>
       <h3>Safety supervisor (state machine)</h3>
@@ -362,19 +369,29 @@
           <text x="128" y="67" font-size="7.4">verified home</text>
         </g>
       </svg>
-      <p style="margin-top:2px"><b>Enable interlocks.</b> The actuators only move when all of these hold: the configuration has no placeholder values, both controllers reply, both report a valid
-        home reference, both are stopped and fault-free, and the measured length is within 0.05 in of center. <b>Position mode can never be entered
-        on an unhomed actuator.</b></p>
+      <p style="margin:2px 0 2px"><b>The actuators only move when:</b></p>
+      <ul>
+        <li>both controllers reply and are fault-free</li>
+        <li>both are homed and within 0.05 in of center</li>
+        <li>the configuration is complete</li>
+      </ul>
       <table>
-        <tr><th>Fault (latched)</th><th>Detection</th></tr>
-        <tr><td>No reply</td><td>3 consecutive missed cycles (60 ms)</td></tr>
-        <tr><td>Controller fault</td><td>moteus mode = fault; code preserved for debug</td></tr>
-        <tr><td>Watchdog timeout</td><td>moteus reports timeout mode</td></tr>
-        <tr><td>Wrong mode</td><td>not in position mode while enabled</td></tr>
-        <tr><td>Tracking error</td><td>|cmd − meas| &gt; 0.10 in for 5 cycles</td></tr>
+        <tr><th>Fault</th><th>Detected when</th></tr>
+        <tr><td>No reply</td><td>3 missed cycles (60 ms)</td></tr>
+        <tr><td>Controller fault</td><td>motor controller reports a fault</td></tr>
+        <tr><td>Watchdog</td><td>commands stopped for 100 ms</td></tr>
+        <tr><td>Wrong mode</td><td>not in position mode</td></tr>
+        <tr><td>Tracking error</td><td>off by &gt; 0.10 in for 5 cycles</td></tr>
       </table>
-      <p style="margin:4px 0 0"><b>Response:</b> healthy axes slew back to center, faulted axes are stopped, and an active static-fire sequence aborts.</p>
+      <p style="margin:4px 0 0"><b>On any fault:</b> center the gimbal, stop the faulted actuator, abort the test.</p>
     </div>
+  </div>
+
+  <h3 style="margin-top:22px">Three independent layers of protection</h3>
+  <div class="layers">
+    <div class="layer"><div class="n">1</div><b>Firmware interlocks</b><span>Won't enable until homed, centered and healthy. Latches any fault.</span></div>
+    <div class="layer"><div class="n">2</div><b>Motor-controller watchdog</b><span>If commands stop for 100 ms (cut cable, frozen MCU), the motors stop on their own.</span></div>
+    <div class="layer"><div class="n">3</div><b>Hard limits</b><span>Angle clamped to ±12°, speed to 30°/s, plus the motor controller's own current limit.</span></div>
   </div>
   <div class="foot"><span>Adit Bansal · Portfolio Sample</span><span>Ranger TVC</span><span>3 / 4</span></div>
 </section>
@@ -449,7 +466,6 @@
       <h3>Next steps (before vehicle integration)</h3>
       <ul>
         <li>Enable the 5 Mbps data phase after scope-checking eye quality on the full-length vehicle harness</li>
-        <li>Confirm yaw direction and controller ID, then resolve the yaw geometry discrepancy with the mechanical team</li>
         <li>Set an explicit torque limit from the actuator's safe force rating</li>
         <li>Tune slew and tracking limits from measured step response, then run hardware-in-the-loop with GNC</li>
       </ul>
@@ -459,7 +475,7 @@
       <ul>
         <li><b>The electrical layer comes first.</b> A missing terminator or a floating pin looks like a "software bug" until you put a scope on it.</li>
         <li><b>Fail safe by design, in layers:</b> firmware interlocks, a controller-side watchdog, and a mechanical home reference each cover the others' failures.</li>
-        <li><b>Refuse to guess.</b> When data disagreed, I made the system refuse to run and escalated the question, instead of picking a number.</li>
+        <li><b>Test before hardware.</b> Keeping the logic hardware-independent let me exercise every safety path on a PC before an actuator ever moved.</li>
       </ul>
     </div>
   </div>
