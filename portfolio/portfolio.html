@@ -55,6 +55,10 @@
   .tag { display: inline-block; font-size: 7pt; font-weight: 600; padding: 0 5px; border-radius: 8px; }
   .tag.me { background: var(--accent); color: #fff; }
   .tag.team { background: #e2e5ea; color: #39404c; }
+  .reqs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .req { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 4px; padding: 5px 7px; font-size: 8.2pt; line-height: 1.3; }
+  .req b { display: block; color: var(--accent); font-size: 9.5pt; }
+  .rid { font-weight: 700; color: var(--accent); white-space: nowrap; }
   .p3 { font-size: 10.4pt; line-height: 1.45; }
   .p3 h3 { font-size: 11pt; margin: 14px 0 6px; }
   .p3 table { font-size: 9.6pt; } .p3 th { font-size: 9.2pt; } .p3 th, .p3 td { padding: 5px 6px; }
@@ -190,10 +194,10 @@
       <ul>
         <li>Brought up <b>CAN-FD on FlexCAN3</b>: devicetree overlay, bit timing, Kconfig, pin mapping to the transceiver</li>
         <li>Wrote an <b>allocation-free moteus protocol</b> encoder/decoder and a non-blocking CAN transport</li>
-        <li>Built the <b>50 Hz TVC thread</b> with jitter, latency and overrun telemetry, and resolved thread-timing races</li>
+        <li>Built the <b>50 Hz TVC thread</b> with timing telemetry; resolved thread-timing races</li>
         <li>Implemented <b>closed-form inverse kinematics</b> (law of cosines) from the mechanical team's gimbal model</li>
         <li>Designed the <b>safety supervisor</b>: homing, enable interlocks, clamps, slew limits, fault latching</li>
-        <li>Debugged the <b>CAN physical layer</b> with an oscilloscope and SocketCAN tools; wrote the bench procedures</li>
+        <li>Debugged the <b>CAN physical layer</b> with an oscilloscope and SocketCAN</li>
       </ul>
     </div>
     <div class="box">
@@ -206,16 +210,23 @@
         MATLAB · Python · protobuf (nanopb) · ztest on native_sim · Git</p>
     </div>
   </div>
+  <h3 style="margin-top:12px">Requirements I designed to <span class="muted" style="font-weight:400">(verification on p. 4)</span></h3>
+  <div class="reqs">
+    <div class="req"><b>R1</b><span>Point the engine ±12° in pitch and yaw, matching the mechanical model</span></div>
+    <div class="req"><b>R2</b><span>Update every 20 ms, with replies back in under 5 ms</span></div>
+    <div class="req"><b>R3</b><span>Never move an actuator that is unhomed or unhealthy</span></div>
+    <div class="req"><b>R4</b><span>Fail safe on lost communication or a controller fault</span></div>
+    <div class="req"><b>R5</b><span>Reject bad commands: NaN, out-of-range, sudden steps</span></div>
+  </div>
   <div class="foot"><span>Adit Bansal · Portfolio Sample</span><span>USC Liquid Propulsion Lab · Ranger TVC</span><span>1 / 4</span></div>
 </section>
 
 <!-- ============================== PAGE 2 ============================== -->
 <section class="page">
   <h2><span class="num">02</span>Electrical interface: the CAN-FD bus</h2>
-  <p><b>Why CAN-FD.</b> Each actuator needs a 43-byte command-and-query frame every cycle. Classic CAN carries 8 data bytes per frame,
-    so one command would need six frames. CAN-FD carries up to 64 bytes and can switch the data phase to a higher bit rate. Because CAN
-    is a differential bus, it also tolerates the electrical noise around a firing engine far better than the single-ended
-    PWM servo links used on our earlier test vehicle.</p>
+  <p><b>Why CAN-FD.</b> Each actuator needs a 43-byte command-and-query frame every cycle: six frames on classic CAN (8 bytes each),
+    one on CAN-FD (up to 64 bytes, with a faster data phase). As a differential bus, it also rejects the electrical noise around a firing
+    engine far better than the single-ended PWM servo links on our Hornet test vehicle.</p>
 
   <div class="cols-60">
     <div>
@@ -233,15 +244,15 @@
       <h3>Bus timing budget (one 20 ms cycle)</h3>
       <svg viewBox="0 0 330 150" width="100%" xmlns="http://www.w3.org/2000/svg">
         <rect x="10" y="22" width="310" height="34" fill="#f3f5f8" stroke="#9aa3b0"/>
-        <rect x="10" y="22" width="15.5" height="34" fill="#1f4e8c"/>
-        <rect x="27" y="22" width="15.5" height="34" fill="#1f4e8c" opacity="0.7"/>
-        <rect x="44" y="22" width="15.5" height="34" fill="#a3471b"/>
-        <rect x="61" y="22" width="15.5" height="34" fill="#a3471b" opacity="0.7"/>
+        <rect x="10" y="22" width="7.75" height="34" fill="#1f4e8c"/>
+        <rect x="18.5" y="22" width="7.75" height="34" fill="#1f4e8c" opacity="0.7"/>
+        <rect x="27" y="22" width="7.75" height="34" fill="#a3471b"/>
+        <rect x="35.5" y="22" width="7.75" height="34" fill="#a3471b" opacity="0.7"/>
         <line x1="10" y1="64" x2="87.5" y2="64" stroke="#14181f"/>
         <line x1="10" y1="60" x2="10" y2="68" stroke="#14181f"/><line x1="87.5" y1="60" x2="87.5" y2="68" stroke="#14181f"/>
         <text x="49" y="78" text-anchor="middle" font-size="8.4">5 ms reply window</text>
         <text x="200" y="43" text-anchor="middle" font-size="8.6" fill="#555d6b">bus idle (~90%)</text>
-        <text x="10" y="15" font-size="8" fill="#555d6b">0</text>
+        <text x="10" y="15" font-size="8" fill="#555d6b">0</text><text x="165" y="15" text-anchor="middle" font-size="7.6" fill="#555d6b">(drawn to scale)</text>
         <text x="320" y="15" text-anchor="end" font-size="8" fill="#555d6b">20 ms</text>
         <rect x="10" y="92" width="9" height="9" fill="#1f4e8c"/><text x="23" y="100" font-size="8">TX pitch, yaw command (48 B)</text>
         <rect x="10" y="108" width="9" height="9" fill="#a3471b"/><text x="23" y="116" font-size="8">RX pitch, yaw reply (state query)</text>
@@ -254,9 +265,9 @@
   <h3>Frame-time estimate</h3>
   <span class="eq">t_frame ≈ 67 bit / R_arb + (48 B·8 + CRC + stuffing ≈ 430 bit) / R_data ≈ 0.5 ms at 1 Mbps</span>
   <p>That gives four frames, about 2 ms, inside a 5 ms reply window, which leaves margin for a retransmission and for bus load to grow when more nodes
-    are added. A 48-byte frame was also a deliberate choice: I encode every position register as <b>float32</b> rather than moteus' scaled
-    int16 format, because int16 saturates at ±3.28 revolutions and the actuator travels about ±8 rev over ±12°.
-    Spending 5 extra bytes per frame removes an overflow failure mode entirely.</p>
+    are added. The frame size was also a deliberate choice: I send registers as <b>float32</b> rather than moteus' scaled
+    int16 format, because int16 position saturates at ±3.28 revolutions and the actuator travels about ±8 rev over ±12°.
+    A few extra bytes per frame remove an overflow failure mode entirely.</p>
 
   <div class="cols">
     <div>
@@ -268,21 +279,28 @@
           and the CPU never sees unrelated traffic.</li>
         <li><b>Non-blocking transmit</b>: frames go into a hardware mailbox with a completion callback, so a missing ACK or a stuck bus
           cannot stall the control thread.</li>
-        <li><b>Watchdog on the motor controller</b>: if commands stop for 100 ms (cable cut, MCU hang), moteus stops driving on its own.
-          The hardware fails safe independently of my code.</li>
+        <li><b>Watchdog on the motor controller</b>: if commands stop for 100 ms (cable cut, MCU hang), moteus stops driving on its own,
+          independently of my code.</li>
       </ul>
     </div>
     <div class="box">
       <h3>Bringing up and debugging the physical layer</h3>
-      <p><b>Approach:</b> verify the bus one layer at a time, so a "no reply" symptom can be pinned to wiring, signaling, or firmware
-        instead of guessing.</p>
+      <p><b>Approach:</b> verify one layer at a time, so a "no reply" can be pinned to wiring, signaling, or firmware.</p>
       <p><b>Method:</b> probed CAN_H and CAN_L with an oscilloscope and checked the differential levels (recessive ≈ 0 V, dominant ≈ 2 V).
-        Looked for ringing on edges, which points to termination problems. Measured ~60 Ω across H–L with power off, which confirms both 120 Ω
-        terminators are present. Used SocketCAN (<span class="mono">candump</span>) to confirm frame IDs and ACKs independently of the MCU.</p>
+        Looked for ringing on edges, which points to termination problems. With power off, H–L should read ~60 Ω: two 120 Ω
+        terminators in parallel. Used SocketCAN (<span class="mono">candump</span>) to confirm frame IDs and ACKs independently of the MCU.</p>
       <p style="margin:0"><b>Firmware side:</b> matched the 29-bit ID layout (prefix, source, destination, reply bit) and bit rates to the
         moteus configuration, and brought up one actuator at a time with a single-axis bench build, so each fault had only one suspect.</p>
     </div>
   </div>
+
+  <h3>Interface summary</h3>
+  <table>
+    <tr><th style="width:17%">Signal</th><th style="width:27%">From → To</th><th style="width:22%">Physical</th><th>Notes</th></tr>
+    <tr><td>CAN TX / RX</td><td>Teensy pin 31 (CTX3) / 30 (CRX3) ↔ transceiver TXD / RXD</td><td>3.3 V logic, single-ended</td><td>MCU pins are not 5 V tolerant</td></tr>
+    <tr><td>CAN_H / CAN_L / GND</td><td>Transceiver ↔ moteus (×2), JST PH-3</td><td>Differential twisted pair</td><td>120 Ω at each end of the bus; 1 Mbps arbitration, 5 Mbps data</td></tr>
+    <tr><td>Telemetry / commands</td><td>Teensy ↔ ground station</td><td>Ethernet, protobuf</td><td>Live TVC dashboard and CSV log</td></tr>
+  </table>
   <div class="foot"><span>Adit Bansal · Portfolio Sample</span><span>Ranger TVC</span><span>2 / 4</span></div>
 </section>
 
@@ -411,19 +429,19 @@
           can never delay an actuator command.</li>
         <li><b>No priority inversion:</b> the controller and TVC thread share one small struct behind a mutex. Both only copy data while
           holding it and never block or log inside it, so the controller never waits on the CAN bus.</li>
-        <li><b>Self-measuring:</b> every cycle records period jitter, per-axis reply latency, cycle time and overruns, and streams them
-          to the ground station.</li>
       </ul>
     </div>
     <div>
-      <h3>Verification strategy</h3>
+      <h3>Requirements verification (from p. 1)</h3>
       <table>
-        <tr><th style="width:30%">Level</th><th>What it proves</th></tr>
-        <tr><td><b>55 host unit tests</b> (ztest, native_sim)</td><td>IK vs 241 MATLAB vectors/axis; frame encode/decode byte-exact; every supervisor safety path (missed replies, faults, interlocks, slew, NaN)</td></tr>
-        <tr><td><b>Single-actuator bench build</b></td><td>One axis on a bare Teensy + transceiver; the full safety logic still runs on the installed axis</td></tr>
-        <tr><td><b>Bench sweep</b></td><td>±2° triangle sweep at 0.5°/s; commanded vs measured angle logged at 5 Hz</td></tr>
-        <tr><td><b>Ground dashboard</b></td><td>Live state, enable blockers, per-axis cmd/meas, voltage, temperature, latency; CSV log for plots</td></tr>
+        <tr><th style="width:9%">Req</th><th>Verified by</th></tr>
+        <tr><td class="rid">R1</td><td>Kinematics checked against 241 MATLAB points per axis; ±2° bench sweep logs commanded vs measured angle</td></tr>
+        <tr><td class="rid">R2</td><td>Per-cycle telemetry of jitter, reply latency and overruns (budget below)</td></tr>
+        <tr><td class="rid">R3</td><td>Unit tests: unhomed, off-center, silent and incomplete-config cases never enable</td></tr>
+        <tr><td class="rid">R4</td><td>Unit tests for all 5 latched faults; 100 ms moteus watchdog as a hardware backstop</td></tr>
+        <tr><td class="rid">R5</td><td>Unit tests: NaN holds last angle, clamps, step commands slew-limited</td></tr>
       </table>
+      <p class="muted" style="font-size:7.8pt;margin-top:3px">55 unit tests run on a PC (Zephyr native_sim) before any hardware; bench builds run one actuator on a bare Teensy.</p>
     </div>
   </div>
 
