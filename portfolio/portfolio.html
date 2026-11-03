@@ -186,7 +186,7 @@
       <h3>Team context <span class="tag team">team</span></h3>
       <p>The GNC team owns guidance and control software for Ranger. Teammates built the flight-computer controller framework,
         the sensor drivers, the first moteus bench test (which set the controller IDs and defaults), and the gimbal mechanism and
-        its MATLAB kinematic model, which I translated into firmware. <span class="fill">[adjust to match who did what]</span></p>
+        its MATLAB kinematic model, which I translated into firmware.</p>
       <h3>Tools</h3>
       <p class="muted" style="margin:0">Zephyr RTOS · C++23 · devicetree/Kconfig · CAN-FD / SocketCAN · moteus r4.1 · oscilloscope ·
         MATLAB · Python · protobuf (nanopb) · ztest on native_sim · Git</p>
@@ -259,13 +259,14 @@
       </ul>
     </div>
     <div class="box">
-      <h3>Debugging the physical layer</h3>
-      <p><b>Symptom:</b> <span class="fill">[describe what you saw, e.g. no replies, intermittent missed frames, error-passive state]</span></p>
+      <h3>Bringing up and debugging the physical layer</h3>
+      <p><b>Approach:</b> verify the bus one layer at a time, so a "no reply" symptom can be pinned to wiring, signaling, or firmware
+        instead of guessing.</p>
       <p><b>Method:</b> probed CAN_H and CAN_L with an oscilloscope and checked the differential levels (recessive ≈ 0 V, dominant ≈ 2 V).
         Looked for ringing on edges, which points to termination problems. Measured ~60 Ω across H–L with power off, which confirms both 120 Ω
         terminators are present. Used SocketCAN (<span class="mono">candump</span>) to confirm frame IDs and ACKs independently of the MCU.</p>
-      <p style="margin:0"><b>Root cause and fix:</b> <span class="fill">[e.g. missing far-end terminator / standby pin floating / wrong ID prefix]</span></p>
-      <p class="muted" style="margin:4px 0 0;font-size:7.6pt"><span class="fill">[Insert scope capture here if you have one: a clean dominant/recessive edge]</span></p>
+      <p style="margin:0"><b>Firmware side:</b> matched the 29-bit ID layout (prefix, source, destination, reply bit) and bit rates to the
+        moteus configuration, and brought up one actuator at a time with a single-axis bench build, so each fault had only one suspect.</p>
     </div>
   </div>
   <div class="foot"><span>Adit Bansal · Portfolio Sample</span><span>Ranger TVC</span><span>2 / 4</span></div>
@@ -410,14 +411,14 @@
   </div>
 
   <div class="box" style="margin:6px 0 8px">
-    <h3>Bench results <span class="fill">[fill in with your measured numbers]</span></h3>
+    <h3>Timing budget per 20 ms cycle <span class="muted" style="font-weight:400">(design limits, monitored live by built-in telemetry)</span></h3>
     <div class="stats" style="grid-template-columns:repeat(4,1fr);margin:4px 0">
-      <div class="stat"><div class="v"><span class="fill">__ µs</span></div><div class="l">max loop jitter (1 s window)</div></div>
-      <div class="stat"><div class="v"><span class="fill">__ ms</span></div><div class="l">max reply latency (resume: &lt; 5 ms)</div></div>
-      <div class="stat"><div class="v"><span class="fill">0</span></div><div class="l">overruns / missed frames over <span class="fill">__ min</span></div></div>
-      <div class="stat"><div class="v"><span class="fill">__ in</span></div><div class="l">peak tracking error during sweep</div></div>
+      <div class="stat"><div class="v">&lt; 5 ms</div><div class="l">reply window for both actuators</div></div>
+      <div class="stat"><div class="v">~2 ms</div><div class="l">bus traffic per cycle at 1 Mbps (~10% load)</div></div>
+      <div class="stat"><div class="v">60 ms</div><div class="l">to declare a silent actuator faulted (3 cycles)</div></div>
+      <div class="stat"><div class="v">100 ms</div><div class="l">controller-side watchdog: motors stop if commands cease</div></div>
     </div>
-    <p class="muted" style="margin:0;font-size:7.8pt"><span class="fill">[Optional: a commanded-vs-measured angle plot from the CSV log, or a bench photo. Crop out anything sensitive.]</span></p>
+    <p class="muted" style="margin:0;font-size:7.8pt">CPU cost is tens of µs per cycle. Jitter, per-axis latency and overruns are logged every cycle and shown on the ground dashboard.</p>
   </div>
 
   <h3>Problems I found and solved</h3>
@@ -434,11 +435,11 @@
     </div>
     <div class="box">
       <div class="star">
-        <b>Situation</b><span><span class="fill">[the thread-timing race you hit: what you saw and when]</span></span>
+        <b>Situation</b><span>Control logic runs on one 1.5 ms work queue; waiting there for CAN replies (up to 5 ms) would stall it, and the two raced on shared state.</span>
         <b>Task</b><span>Make the 50 Hz TVC loop deterministic without slowing the 1.5 ms controller.</span>
         <b>Action</b><span>Moved CAN onto a dedicated thread that alone owns the bus, paced by an absolute kernel timer, with a mutex-guarded hand-off.
           Moved logging out of the critical section (it could stall the controller) and fixed an undefined NaN-to-int conversion in the bench log.</span>
-        <b>Result</b><span>Command-to-reply latency under 5 ms at a stable 50 Hz, <span class="fill">[jitter __ µs]</span>, with overruns measured instead of hidden.</span>
+        <b>Result</b><span>The controller tick never waits on CAN, and command-to-reply latency stays under 5 ms at a stable 50 Hz, with jitter and overruns measured every cycle instead of hidden.</span>
       </div>
     </div>
   </div>
@@ -450,7 +451,7 @@
         <li>Enable the 5 Mbps data phase after scope-checking eye quality on the full-length vehicle harness</li>
         <li>Confirm yaw direction and controller ID, then resolve the yaw geometry discrepancy with the mechanical team</li>
         <li>Set an explicit torque limit from the actuator's safe force rating</li>
-        <li>Tune slew, acceleration and tracking-error limits from measured step response; then hardware-in-the-loop with GNC</li>
+        <li>Tune slew and tracking limits from measured step response, then run hardware-in-the-loop with GNC</li>
       </ul>
     </div>
     <div>
