@@ -262,9 +262,20 @@ Cortex-M7 with a hardware FPU does it in well under a microsecond. A lookup tabl
 <h3>2.9 Lead screw and motor physics (likely if they're electrical-leaning)</h3>
 <ul>
 <li><b>Lead</b> = linear travel per revolution = 4 mm (single-start, so lead = pitch).</li>
-<li><b>Force from torque:</b> F = 2π·η·T / lead. Example with T = 1 N·m, lead = 0.004 m and efficiency η ≈ 0.3 (typical ACME lead screw): F ≈ 2π × 0.3 × 1 / 0.004 ≈ 470 N (about 105 lbf). Ball screws are ~0.9 efficient. <b>Find out which type your actuator uses.</b></li>
-<li><b>Backdriving:</b> low-efficiency lead screws resist being pushed back by the load; ball screws backdrive easily. Matters for what the
-gimbal does when the motor is unpowered.</li>
+<li><b>Your actuator uses a lead screw</b> (sliding threads, not recirculating balls). Typical efficiency is about 20–50% for a plain lead
+screw versus ~90% for a ball screw.</li>
+<li><b>Force from torque:</b> F = 2π·η·T / lead. Example: T = 1 N·m, lead = 0.004 m, η ≈ 0.3:
+F ≈ 2π × 0.3 × 1 / 0.004 ≈ 470 N (about 105 lbf). The motor torque you need is T = F·lead / (2π·η), so low efficiency means more current
+for the same force.</li>
+<li><b>Why a lead screw (tradeoffs):</b> cheaper, simpler, compact, quiet, and it tends to resist being back-driven. Costs: lower efficiency
+(more motor current and heat), friction and wear over cycles, and some backlash (play when the direction reverses), which shows up as a
+small position error at reversals.</li>
+<li><b>Backdriving:</b> whether the engine's load can push the screw backward depends on the lead angle versus the friction angle. A small
+lead angle with high friction is self-locking: with the motor unpowered, the gimbal tends to stay where it is. That matters for your fault
+policy: "stop" (unpowered) on a self-locking screw roughly holds position rather than letting the engine flop. <b>Don't claim it's
+self-locking unless you've tested it.</b> The honest answer is "lead screws often are; I'd verify by loading it with power off."</li>
+<li><b>Regen is smaller</b> with a self-locking or low-efficiency screw, because less of the load's energy makes it back to the motor. Still
+worth bus capacitance for motor deceleration.</li>
 <li><b>Torque ∝ current</b> in a BLDC: T = K<sub>t</sub> · I. So "torque limit" really means "phase current limit".</li>
 <li><b>Back-EMF:</b> a spinning motor generates voltage ∝ speed (K<sub>e</sub>). At high speed it limits how fast you can go for a given
 supply voltage.</li>
@@ -600,7 +611,7 @@ Keep each to about 2 minutes.</p>
   <tr><td>Termination</td><td>120 Ω each end; 60 Ω across H–L with power off</td></tr>
   <tr><td>Logic level</td><td>3.3 V; RT1062 pins not 5 V tolerant</td></tr>
   <tr><td>Gimbal</td><td>±12°, 2 axes, ~2.4 in stroke (17.08 → 18.36 → 19.47 in)</td></tr>
-  <tr><td>Lead screw</td><td>4 mm lead, 1:1 direct drive → 6.35 rev/in; ±12° ≈ −8.1 / +7.0 rev</td></tr>
+  <tr><td>Lead screw</td><td>Lead screw (not ball screw), 4 mm lead, 1:1 direct drive → 6.35 rev/in; ±12° ≈ −8.1 / +7.0 rev</td></tr>
   <tr><td>Why float32</td><td>int16 position saturates at ±3.2767 rev</td></tr>
   <tr><td>Kinematics</td><td>L² = L_ts² + L_re² − 2·L_ts·L_re·cos(θ₀+δ); dL/dδ ≤ 0.115 in/deg</td></tr>
   <tr><td>Limits</td><td>Slew 30°/s (0.6°/cycle); moteus velocity limit 1.5× slew; accel 300°/s²</td></tr>
